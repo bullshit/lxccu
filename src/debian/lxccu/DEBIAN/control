@@ -1,0 +1,10 @@
+Package: lxccu
+Version: 1.0-1
+Architecture: all
+Maintainer: LXCCU Team <team@lxccu.org>
+Installed-Size: 46
+Depends: dialog, patch, tar (>= 1.27.1), wget, pv, lxc, bridge-utils
+Section: misc
+Priority: optional
+Description: This install in a linux container
+ the homematic ccu firmware

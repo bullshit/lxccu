@@ -1,0 +1,7 @@
+./src/debian/lxccu.*
+./src/debian/lxccu/
+.vagrant/
+*.ex
+# misc
+*.deb
+*lxccu*_all

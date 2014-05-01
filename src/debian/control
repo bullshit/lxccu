@@ -1,0 +1,12 @@
+Source: lxccu
+Maintainer: LXCCU Team <team@lxccu.org>
+Section: misc
+Priority: optional
+Standards-Version: 3.9.3
+Build-Depends: debhelper (>= 9)
+
+Package: lxccu
+Architecture: all
+Depends:  dialog, patch, tar (>=1.27.1), wget, pv, lxc, bridge-utils, ${misc:Depends}
+Description: This install in a linux container
+ the homematic ccu firmware
