@@ -21,6 +21,7 @@ case "$1" in
     remove|deconfigure)
         lxc-destroy -n lxccu
 		rm -rf "/opt/lxccu"
+        rm -rf /var/lib/ubi_reader
     ;;
     upgrade)
 

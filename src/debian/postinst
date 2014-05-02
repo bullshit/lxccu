@@ -17,36 +17,46 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-LXCCU_FW_VERSION="2.7.17"
+EQ3_FW_VERSION="2.7.17"
 ROOT_PATH="/var/lib/lxccu/"
-
+logdebug () {
+	echo "Debug: $1 $2"
+}
+QUIET=""
+#QUIET="--quiet"
 case "$1" in
     configure)
 		# download fw
-		EQ3_FW_URL="http://www.eq-3.de/Downloads/Software/HM-CCU2-Firmware_Updates/HM-CCU2-${LXCCU_FW_VERSION}/HM-CCU2-${LXCCU_FW_VERSION}.tar.gz"
-		LXCCU_FW="/opt/HM-CCU2-${LXCCU_FW_VERSION}.tar.gz"
+		EQ3_FW_URL="http://www.eq-3.de/Downloads/Software/HM-CCU2-Firmware_Updates/HM-CCU2-${EQ3_FW_VERSION}/HM-CCU2-${EQ3_FW_VERSION}.tar.gz"
+		logdebug "EQ3_FW_URL" $EQ3_FW_URL
+		EQ3_FW="/opt/HM-CCU2-${EQ3_FW_VERSION}.tar.gz"
+		logdebug "EQ3_FW" $EQ3_FW
 		echo "Downloading firmware"
-		wget "$EQ3_FW_URL" --quiet --output-document="$LXCCU_FW"
-		if [ ! -f "$LXCCU_FW" ]; then
+		wget "$EQ3_FW_URL" $QUIET --output-document="$EQ3_FW"
+		if [ ! -f "$EQ3_FW" ]; then
 			echo "Can not download firmware. Are you connected to the internet?"
 			exit 1
 		fi
 
 
 		# extract fw
-		LXCCU_FW_ROOTFS="/opt/lxccu/fs/"
-		mkdir -p $LXCCU_FW_ROOTFS
+		LXCCU_ROOT="/opt/lxccu/"
+		logdebug "LXCCU_ROOT" $LXCCU_ROOT
+		mkdir -p $LXCCU_ROOT
+		LXCCU_ROOTFS="/opt/lxccu/root"
+		logdebug "LXCCU_ROOTFS" $LXCCU_ROOTFS
 		echo "Extracting firmware"
-		tar xzf $LXCCU_FW -C /opt/
+		tar xzf $EQ3_FW -C /opt/
 
 
 		# extract ubi image
 		echo "Extract ubi image"
-		/var/lib/lxccu/ubi_reader/ubi_extract_files.py -q -k -l $LXCCU_FW_ROOTFS /opt/rootfs.ubi
+		LOG=`mktemp`
+		/var/lib/ubi_reader/ubi_extract_files.py -q -k -o $LXCCU_ROOT --log-file $LOG /opt/rootfs.ubi
 
 		# clean up download sources
 		echo "Remove downloaded files"
-		rm -f $LXCCU_FW
+		rm -f $EQ3_FW
 		rm -f /opt/EULA.de
 		rm -f /opt/EULA.en
 		rm -f /opt/rootfs.ubi
@@ -55,15 +65,15 @@ case "$1" in
 
 
 		# patch fw
-		cd $LXCCU_FW_ROOTFS 
+		cd $LXCCU_ROOTFS 
 		echo "apply patch"
-		patch --quiet --input "${ROOT_PATH}source/patches/lxccu-${LXCCU_FW_VERSION}.patch" -p1
+		patch $QUIET --input "${ROOT_PATH}source/patches/lxccu-${EQ3_FW_VERSION}.patch" -p1
 
 
 		# apply scripts
-		cd $LXCCU_FW_ROOTFS 
+		cd $LXCCU_ROOTFS 
 		echo "apply script"
-		sh "${ROOT_PATH}source/scripts/lxccu-${LXCCU_FW_VERSION}.sh"
+		sh "${ROOT_PATH}source/scripts/lxccu-${EQ3_FW_VERSION}.sh"
 
 
 		# sdcard
@@ -73,7 +83,7 @@ case "$1" in
 
 
 		# prepare configure file
-		#TEMP$(<${ROOT_PATH}source/lxc-config/config-${LXCCU_FW_VERSION})
+		#TEMP$(<${ROOT_PATH}source/lxc-config/config-${EQ3_FW_VERSION})
 		echo "select bridge"
 		# dialog --backtitle "$BACKTITLE" \
 		# 	--title $CONFIG_TITLE \
@@ -88,9 +98,8 @@ case "$1" in
 		# 	*)
 		# 		exit 1
 		# esac
-		BRIDGE_DEVICE="br0"
 		echo "create lxc config file"
-		TEMP= <<EOF
+		cat <<EOF > /opt/lxccu/config
 lxc.mount.entry = proc proc proc nodev,noexec,nosuid 0 0
 lxc.mount.entry = sysfs sys sysfs defaults  0 0
 lxc.mount.entry = varfs var tmpfs defaults,size=196M 0 0
@@ -131,12 +140,10 @@ lxc.cgroup.devices.allow = c 5:2 rwm
 lxc.utsname = lxccu
 lxc.network.type = veth
 lxc.network.flags = up
-lxc.network.link = $BRIDGE_DEVICE
+lxc.network.link = lxccubr0
 lxc.network.hwaddr = 4a:49:43:49:79:bf
-lxc.rootfs = $LXCCU_FW_ROOTFS
+lxc.rootfs = /opt/lxccu/root
 EOF
-		echo "$TEMP" > "/opt/lxccu/config"
-
 		
 		# add container
 		echo "create lxc container lxccu"
