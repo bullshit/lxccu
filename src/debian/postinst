@@ -16,16 +16,6 @@ set -e
 #          <conflicting-package> <version>
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
-BACKTITLE="LXCCU"
-SETUP_TITLE="SETUP"
-
-PATCH=$(which patch)
-TAR=$(which tar)
-LXC_CHECKCONFIG=$(which lxc-checkconfig)
-LXC_CREATE=$(which lxc-create)
-LXC_LIST=$(which lxc-list)
-WGET=$(which wget)
-PV=$(which pv)
 
 LXCCU_FW_VERSION="2.7.17"
 ROOT_PATH="/var/lib/lxccu/"
@@ -33,44 +23,73 @@ ROOT_PATH="/var/lib/lxccu/"
 case "$1" in
     configure)
 		# download fw
-		LXCU_FW_ROOTFS_URL="https://dl.dropboxusercontent.com/s/lctfiakv5k4zfi1/HM-CCU2-2.7.17-rootfs.tar.gz?dl=1"
-		LXCU_FW="${ROOT_PATH}container/HM-CCU2-${LXCCU_FW_VERSION}-rootfs.tar.gz"
+		EQ3_FW_URL="http://www.eq-3.de/Downloads/Software/HM-CCU2-Firmware_Updates/HM-CCU2-${LXCCU_FW_VERSION}/HM-CCU2-${LXCCU_FW_VERSION}.tar.gz"
+		LXCCU_FW="/opt/HM-CCU2-${LXCCU_FW_VERSION}.tar.gz"
 		echo "Downloading firmware"
-		wget "$LXCU_FW_ROOTFS_URL" --output-document="$LXCU_FW" 2>&1
-		if [ ! -f "$LXCU_FW" ]; then
+		wget "$EQ3_FW_URL" --quiet --output-document="$LXCCU_FW"
+		if [ ! -f "$LXCCU_FW" ]; then
 			echo "Can not download firmware. Are you connected to the internet?"
 			exit 1
 		fi
+
+
 		# extract fw
-		LXCU_FW_ROOTFS="${ROOT_PATH}container/fs/"
+		LXCCU_FW_ROOTFS="/opt/lxccu/fs/"
+		mkdir -p $LXCCU_FW_ROOTFS
 		echo "Extracting firmware"
-		tar xzf $LXCU_FW -C $LXCU_FW_ROOTFS
+		tar xzf $LXCCU_FW -C /opt/
+
+
+		# extract ubi image
+		echo "Extract ubi image"
+		/var/lib/lxccu/ubi_reader/ubi_extract_files.py -q -k -l $LXCCU_FW_ROOTFS /opt/rootfs.ubi
+
+		# clean up download sources
+		echo "Remove downloaded files"
+		rm -f $LXCCU_FW
+		rm -f /opt/EULA.de
+		rm -f /opt/EULA.en
+		rm -f /opt/rootfs.ubi
+		rm -f /opt/uImage
+		rm -f /opt/update_script
+
+
 		# patch fw
-		cd $LXCU_FW_ROOTFS 
+		cd $LXCCU_FW_ROOTFS 
 		echo "apply patch"
-		patch --input "${ROOT_PATH}source/patches/lxccu-${LXCCU_FW_VERSION}.patch" -p1
+		patch --quiet --input "${ROOT_PATH}source/patches/lxccu-${LXCCU_FW_VERSION}.patch" -p1
+
+
 		# apply scripts
-		cd $LXCU_FW_ROOTFS 
+		cd $LXCCU_FW_ROOTFS 
 		echo "apply script"
-		sh "${ROOT_PATH}source/lxccu-${LXCCU_FW_VERSION}.sh"
+		sh "${ROOT_PATH}source/scripts/lxccu-${LXCCU_FW_VERSION}.sh"
+
+
 		# sdcard
+		echo "create sd card"
 		mkdir -p /media/sd-lxccu/
 		touch /media/sd-lxccu/.initialised
+
+
 		# prepare configure file
 		#TEMP$(<${ROOT_PATH}source/lxc-config/config-${LXCCU_FW_VERSION})
-		dialog --backtitle "$BACKTITLE" \
-			--title $CONFIG_TITLE \
-			--radiolist "Select a network bridge:" 10 40 4 \
-				`ip -o link | grep -v "lo" | awk '{split($0,a,":"); nic=a[2]; gsub(" ","",nic); s="off"; if (FNR==1) s="on"; print FNR" "nic" "s}'` 2>$OUTPUT
-		response=$?
-		case $response in
-			0)
-				#echo "select input: $INPUT"
-				BRIDGE_DEVICE=`ip -o link | grep -v "lo" | head -n $INPUT | tail -n 1 | awk '{split($0,a," "); nic=a[2]; print substr(nic,0,length(nic));}'`
-				;;
-			*)
-				exit 1
-		esac
+		echo "select bridge"
+		# dialog --backtitle "$BACKTITLE" \
+		# 	--title $CONFIG_TITLE \
+		# 	--radiolist "Select a network bridge:" 10 40 4 \
+		# 		`ip -o link | grep -v "lo" | awk '{split($0,a,":"); nic=a[2]; gsub(" ","",nic); s="off"; if (FNR==1) s="on"; print FNR" "nic" "s}'` 2>$OUTPUT
+		# response=$?
+		# case $response in
+		# 	0)
+		# 		#echo "select input: $INPUT"
+		# 		BRIDGE_DEVICE=`ip -o link | grep -v "lo" | head -n $INPUT | tail -n 1 | awk '{split($0,a," "); nic=a[2]; print substr(nic,0,length(nic));}'`
+		# 		;;
+		# 	*)
+		# 		exit 1
+		# esac
+		BRIDGE_DEVICE="br0"
+		echo "create lxc config file"
 		TEMP= <<EOF
 lxc.mount.entry = proc proc proc nodev,noexec,nosuid 0 0
 lxc.mount.entry = sysfs sys sysfs defaults  0 0
@@ -114,11 +133,14 @@ lxc.network.type = veth
 lxc.network.flags = up
 lxc.network.link = $BRIDGE_DEVICE
 lxc.network.hwaddr = 4a:49:43:49:79:bf
-lxc.rootfs = /var/lib/lxccu/container/fs
+lxc.rootfs = $LXCCU_FW_ROOTFS
 EOF
-		echo "$TEMP" > "${ROOT_PATH}container/config"
+		echo "$TEMP" > "/opt/lxccu/config"
+
+		
 		# add container
-		lxc-create -n lxccu -f "${ROOT_PATH}container/config" -t none
+		echo "create lxc container lxccu"
+		lxc-create -n lxccu -f "/opt/lxccu/config"
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

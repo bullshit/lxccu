@@ -19,10 +19,8 @@ set -e
 
 case "$1" in
     remove|deconfigure)
-		ROOT_PATH="/var/lib/lxccu/"
-		rm -rf "${ROOT_PATH}container/fs/*"
-		rm -f  "${ROOT_PATH}container/config"
-		lxc-destroy -n lxccu
+        lxc-destroy -n lxccu
+		rm -rf "/opt/lxccu"
     ;;
     upgrade)
 

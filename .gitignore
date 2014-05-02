@@ -1,5 +1,5 @@
-./src/debian/lxccu.*
-./src/debian/lxccu/
+src/debian/lxccu.*
+./src/debian/lxccu
 .vagrant/
 *.ex
 # misc
