@@ -20,12 +20,75 @@ set -e
 EQ3_FW_VERSION="2.7.17"
 ROOT_PATH="/var/lib/lxccu/"
 logdebug () {
-	echo "Debug: $1 $2"
+	#echo "Debug: $1 $2"
+	return
 }
-QUIET=""
-#QUIET="--quiet"
+#QUIET=""
+QUIET="--quiet"
+
+logsystem() {
+    cpuinfo_file="/proc/cpuinfo"
+    issue_file="/etc/issue"
+    debian_version_file="/etc/debian_version"
+    timezone_file="/etc/timezone"
+    rpi_issue_file="/etc/rpi-issue"
+    fstab_file="/etc/fstab"
+    apt_sources_file="/etc/apt/sources.list"
+
+    uname=`uname -a`
+    lxc_version=`lxc-version| sed -e 's/lxc version/lxc_version/g'`
+    lxc_package=`dpkg -l|grep lxc`
+
+    lxc_check_config=`lxc-checkconfig | head -n 23 | grep -v "\-" | sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g" | sed -e 's/:/_/g' | tr '\n' '#'`
+    deviceinfo=""
+    if [ -e "$cpuinfo_file" ]; then
+        tmp=`cat $cpuinfo_file | sed -e 's/:/_/g' | tr '\n' '#'`
+        deviceinfo="device: $tmp |"
+    fi
+    deviceinfo="$deviceinfo lxcconfig: $lxc_check_config |"
+    if [ -e "$fstab_file" ]; then
+        fstab_file=`cat $fstab_file | grep -v "#" | tr '\n' '#'`
+        deviceinfo="$deviceinfo fstab_file: $fstab_file|"
+    fi
+    if [ -e "$issue_file" ]; then
+        issue=`cat $issue_file | sed -e 's/:/,/g'`
+        deviceinfo="$deviceinfo os: $issue|"
+    fi
+    if [ -e "$debian_version_file" ]; then
+        debian_version=`cat $debian_version_file`
+        deviceinfo="$deviceinfo debian_version: $debian_version|"
+    fi
+    if [ -e "$timezone_file" ]; then
+        timezone=`cat $timezone_file`
+        deviceinfo="$deviceinfo timezone: $timezone|"
+    fi
+    if [ -e "$rpi_issue_file" ]; then
+        rpi_issue=`cat $rpi_issue_file | sed -e 's/:/,/g'`
+        deviceinfo="$deviceinfo rpi_issue: $rpi_issue|"
+    fi
+
+    if [ -e "$apt_sources_file" ]; then
+        sources_list=`cat $apt_sources_file | sed -e 's/:/,/g' | grep -v "#" | tr '\n' '#'`
+        deviceinfo="$deviceinfo sources_list: $sources_list|"
+    fi
+    deviceinfo="$deviceinfo $lxc_version|"
+    deviceinfo="$deviceinfo lxc_package: $lxc_package|"
+
+    deviceinfo="$deviceinfo $uname"
+
+    url="http://api.536514f44cbecf864f000008.boweryapps.com/betatest/addinstallation"
+
+    echo "The following data will be logged"
+    echo "==========================================="
+    echo $deviceinfo
+    echo "==========================================="
+    wget --quiet --post-data="information=$deviceinfo" $url -O /dev/null  
+}
+
 case "$1" in
     configure)
+		logsystem
+
 		# download fw
 		EQ3_FW_URL="http://www.eq-3.de/Downloads/Software/HM-CCU2-Firmware_Updates/HM-CCU2-${EQ3_FW_VERSION}/HM-CCU2-${EQ3_FW_VERSION}.tar.gz"
 		logdebug "EQ3_FW_URL" $EQ3_FW_URL
@@ -82,22 +145,7 @@ case "$1" in
 		touch /media/sd-lxccu/.initialised
 
 
-		# prepare configure file
-		#TEMP$(<${ROOT_PATH}source/lxc-config/config-${EQ3_FW_VERSION})
-		echo "select bridge"
-		# dialog --backtitle "$BACKTITLE" \
-		# 	--title $CONFIG_TITLE \
-		# 	--radiolist "Select a network bridge:" 10 40 4 \
-		# 		`ip -o link | grep -v "lo" | awk '{split($0,a,":"); nic=a[2]; gsub(" ","",nic); s="off"; if (FNR==1) s="on"; print FNR" "nic" "s}'` 2>$OUTPUT
-		# response=$?
-		# case $response in
-		# 	0)
-		# 		#echo "select input: $INPUT"
-		# 		BRIDGE_DEVICE=`ip -o link | grep -v "lo" | head -n $INPUT | tail -n 1 | awk '{split($0,a," "); nic=a[2]; print substr(nic,0,length(nic));}'`
-		# 		;;
-		# 	*)
-		# 		exit 1
-		# esac
+		# lxc config file
 		echo "create lxc config file"
 		cat <<EOF > /opt/lxccu/config
 lxc.mount.entry = proc proc proc nodev,noexec,nosuid 0 0
@@ -148,6 +196,11 @@ EOF
 		# add container
 		echo "create lxc container lxccu"
 		lxc-create -n lxccu -f "/opt/lxccu/config"
+		retval=$?
+
+		if [ $retval -ne 0 ]; then
+			lxc-create -n lxccu -f "/opt/lxccu/config" -t none
+		fi
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

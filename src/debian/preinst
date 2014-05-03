@@ -17,8 +17,9 @@ set -e
 case "$1" in
     install|upgrade)
 		if  ip addr show lxccubr0 > /dev/null 2>&1 ; then
-			return
-		fi
+			echo "Bridge already exists"
+		else
+            echo "Create bridge"
 		DEVICES=`cat /etc/network/interfaces | grep '^iface' | grep -v "default" | grep -v "lo" | cut -d' ' -f2 |  tr '\n' ' ' `
 		cat >> /etc/network/interfaces << EOF
 auto lxccubr0
@@ -26,6 +27,7 @@ iface lxccubr0 inet dhcp
   bridge_ports $DEVICES	
 EOF
 		ifup lxccubr0
+        fi
     ;;
 
     abort-upgrade)
