@@ -26,69 +26,8 @@ logdebug () {
 #QUIET=""
 QUIET="--quiet"
 
-logsystem() {
-    cpuinfo_file="/proc/cpuinfo"
-    issue_file="/etc/issue"
-    debian_version_file="/etc/debian_version"
-    timezone_file="/etc/timezone"
-    rpi_issue_file="/etc/rpi-issue"
-    fstab_file="/etc/fstab"
-    apt_sources_file="/etc/apt/sources.list"
-
-    uname=`uname -a`
-    lxc_version=`lxc-version| sed -e 's/lxc version/lxc_version/g'`
-    lxc_package=`dpkg -l|grep lxc`
-
-    lxc_check_config=`lxc-checkconfig | head -n 23 | grep -v "\-" | sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g" | sed -e 's/:/_/g' | tr '\n' '#'`
-    deviceinfo=""
-    if [ -e "$cpuinfo_file" ]; then
-        tmp=`cat $cpuinfo_file | sed -e 's/:/_/g' | tr '\n' '#'`
-        deviceinfo="device: $tmp |"
-    fi
-    deviceinfo="$deviceinfo lxcconfig: $lxc_check_config |"
-    if [ -e "$fstab_file" ]; then
-        fstab_file=`cat $fstab_file | grep -v "#" | tr '\n' '#'`
-        deviceinfo="$deviceinfo fstab_file: $fstab_file|"
-    fi
-    if [ -e "$issue_file" ]; then
-        issue=`cat $issue_file | sed -e 's/:/,/g'`
-        deviceinfo="$deviceinfo os: $issue|"
-    fi
-    if [ -e "$debian_version_file" ]; then
-        debian_version=`cat $debian_version_file`
-        deviceinfo="$deviceinfo debian_version: $debian_version|"
-    fi
-    if [ -e "$timezone_file" ]; then
-        timezone=`cat $timezone_file`
-        deviceinfo="$deviceinfo timezone: $timezone|"
-    fi
-    if [ -e "$rpi_issue_file" ]; then
-        rpi_issue=`cat $rpi_issue_file | sed -e 's/:/,/g'`
-        deviceinfo="$deviceinfo rpi_issue: $rpi_issue|"
-    fi
-
-    if [ -e "$apt_sources_file" ]; then
-        sources_list=`cat $apt_sources_file | sed -e 's/:/,/g' | grep -v "#" | tr '\n' '#'`
-        deviceinfo="$deviceinfo sources_list: $sources_list|"
-    fi
-    deviceinfo="$deviceinfo $lxc_version|"
-    deviceinfo="$deviceinfo lxc_package: $lxc_package|"
-
-    deviceinfo="$deviceinfo $uname"
-
-    url="http://api.536514f44cbecf864f000008.boweryapps.com/betatest/addinstallation"
-
-    echo "The following data will be logged"
-    echo "==========================================="
-    echo $deviceinfo
-    echo "==========================================="
-    wget --quiet --post-data="information=$deviceinfo" $url -O /dev/null  
-}
-
 case "$1" in
     configure)
-		logsystem
-
 		# download fw
 		EQ3_FW_URL="http://www.eq-3.de/Downloads/Software/HM-CCU2-Firmware_Updates/HM-CCU2-${EQ3_FW_VERSION}/HM-CCU2-${EQ3_FW_VERSION}.tar.gz"
 		logdebug "EQ3_FW_URL" $EQ3_FW_URL
@@ -103,10 +42,10 @@ case "$1" in
 
 
 		# extract fw
-		LXCCU_ROOT="/opt/lxccu/"
+		LXCCU_ROOT="/var/lib/lxc/lxccu/"
 		logdebug "LXCCU_ROOT" $LXCCU_ROOT
 		mkdir -p $LXCCU_ROOT
-		LXCCU_ROOTFS="/opt/lxccu/root"
+		LXCCU_ROOTFS="/var/lib/lxc/lxccu/root"
 		logdebug "LXCCU_ROOTFS" $LXCCU_ROOTFS
 		echo "Extracting firmware"
 		tar xzf $EQ3_FW -C /opt/
@@ -190,17 +129,21 @@ lxc.network.type = veth
 lxc.network.flags = up
 lxc.network.link = lxccubr0
 lxc.network.hwaddr = 4a:49:43:49:79:bf
-lxc.rootfs = /opt/lxccu/root
+lxc.rootfs = /var/lib/lxc/lxccu/root
 EOF
 		
 		# add container
 		echo "create lxc container lxccu"
-		lxc-create -n lxccu -f "/opt/lxccu/config"
+		lxc-create -n lxccu -f "/var/lib/lxc/lxccu/config"
 		retval=$?
 
 		if [ $retval -ne 0 ]; then
-			lxc-create -n lxccu -f "/opt/lxccu/config" -t none
+			lxc-create -n lxccu -f "/var/lib/lxc/lxccu/config" -t none
 		fi
+
+        # autostart
+        touch "/var/lib/lxc/lxccu/autostart"
+        ln -s /var/lib/lxc/lxccu/config /etc/lxc/auto/lxccu
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
