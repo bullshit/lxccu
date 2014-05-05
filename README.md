@@ -4,7 +4,7 @@
 
 ### raspberry pi
 
-#### raspbian
+#### raspbian / raspbian-ua-netinst
 
 install lxc enabled kernel
 ```
