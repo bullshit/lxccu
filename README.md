@@ -8,7 +8,7 @@
 
 install lxc enabled kernel
 ```
-apt-get update && apt-get install linux-image-rpi-rpfv
+apt-get update && apt-get install linux-image-rpi-rpfv lsb-release
 cp /boot/kernel.img /boot/kernel.img.orig
 cp /vmlinuz /boot/kernel.img
 reboot
@@ -27,5 +27,6 @@ http://www.igorpecovnik.com/2013/12/24/cubietruck-debian-wheezy-sd-card-image/
 
 install lxccu
 ```
+apt-get install lsb-release
 wget -nv -O- https://www.biglan.at/oskar/lxccu/setup.sh | sudo bash -
 ```
