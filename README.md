@@ -16,7 +16,7 @@ reboot
 
 install lxccu
 ```
-wget -nv -O- https://www.biglan.at/oskar/lxccu/setup.sh | sudo bash -
+wget -nv -O- https://www.biglan.at/oskar/lxccu/setup.sh | bash -
 ```
 
 
@@ -28,5 +28,5 @@ http://www.igorpecovnik.com/2013/12/24/cubietruck-debian-wheezy-sd-card-image/
 install lxccu
 ```
 apt-get install lsb-release
-wget -nv -O- https://www.biglan.at/oskar/lxccu/setup.sh | sudo bash -
+wget -nv -O- https://www.biglan.at/oskar/lxccu/setup.sh | bash -
 ```
