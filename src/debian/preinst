@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # preinst script for test
 #
 # see: dh_installdeb(1)
@@ -14,8 +14,12 @@ set -e
 # the debian-policy package
 
 
+backup_lxccu () {
+    echo "backup"
+}
+
 case "$1" in
-    install|upgrade)
+    install)
 		if  ip addr show lxccubr0 > /dev/null 2>&1 ; then
 			echo "Bridge already exists"
 		else
@@ -28,6 +32,19 @@ iface lxccubr0 inet dhcp
 EOF
 		ifup lxccubr0
         fi
+
+        # mount cgroup
+        if [ $(mount | grep cgroup | wc -l) ]; then
+            cgroup_mounted=$(cat /etc/fstab | grep cgroup | wc -l)
+            if [ $cgroup_mounted -eq 0 ]; then
+                echo "lxc /sys/fs/cgroup cgroup defaults 0 0" >> /etc/fstab
+            fi
+            mount -a
+        fi
+    ;;
+
+    upgrade)
+        backup_lxccu
     ;;
 
     abort-upgrade)

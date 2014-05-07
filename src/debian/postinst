@@ -19,6 +19,9 @@ set -e
 
 EQ3_FW_VERSION="2.7.17"
 ROOT_PATH="/var/lib/lxccu/"
+LXCCU_ROOT="/var/lib/lxc/lxccu/"
+LXCCU_ROOTFS="/var/lib/lxc/lxccu/root"
+CONTAINER_NAME="lxccu"
 logdebug () {
 	#echo "Debug: $1 $2"
 	return
@@ -26,8 +29,38 @@ logdebug () {
 #QUIET=""
 QUIET="--quiet"
 
+UPGRADE=0
+remove_lxccu () {
+	echo "check if container exists"
+	CONTAINER_EXITS=$(lxc-list | grep -E "^ {2}lxccu\$" | wc -l)
+	if [ $CONTAINER_EXITS -ne 0 ]; then
+		echo "upgrade modus"
+		UPGRADE=1
+		lxc-stop -n "$CONTAINER_NAME"
+		lxc-destroy -n "$CONTAINER_NAME"
+	fi
+	if [ -f /etc/lxc/auto/lxccu ]; then
+		unlink /etc/lxc/auto/lxccu
+	fi
+	if [ -d "$LXCCU_ROOT" ]; then
+		rm -rf $LXCCU_ROOT
+	fi
+}
+
+restore_lxccu_backup () {
+	echo "restore"
+}
+
+
 case "$1" in
     configure)
+		remove_lxccu
+
+		logdebug "LXCCU_ROOT" $LXCCU_ROOT
+		mkdir -p $LXCCU_ROOT
+		logdebug "LXCCU_ROOTFS" $LXCCU_ROOTFS
+
+
 		# download fw
 		EQ3_FW_URL="http://www.eq-3.de/Downloads/Software/HM-CCU2-Firmware_Updates/HM-CCU2-${EQ3_FW_VERSION}/HM-CCU2-${EQ3_FW_VERSION}.tar.gz"
 		logdebug "EQ3_FW_URL" $EQ3_FW_URL
@@ -42,11 +75,6 @@ case "$1" in
 
 
 		# extract fw
-		LXCCU_ROOT="/var/lib/lxc/lxccu/"
-		logdebug "LXCCU_ROOT" $LXCCU_ROOT
-		mkdir -p $LXCCU_ROOT
-		LXCCU_ROOTFS="/var/lib/lxc/lxccu/root"
-		logdebug "LXCCU_ROOTFS" $LXCCU_ROOTFS
 		echo "Extracting firmware"
 		tar xzf $EQ3_FW -C /opt/
 
@@ -80,13 +108,17 @@ case "$1" in
 
 		# sdcard
 		echo "create sd card"
-		mkdir -p /media/sd-lxccu/
-		touch /media/sd-lxccu/.initialised
+		if [ -d "/media/sd-lxccu/" ]; then
+			echo "sd card exists"
+		else
+			mkdir -p /media/sd-lxccu/
+			touch /media/sd-lxccu/.initialised		
+		fi
 
-
+		lastoctet_macaddress=`openssl rand -hex 1 | sed 's/\(..\)/\1:/g; s/.$//'`
 		# lxc config file
 		echo "create lxc config file"
-		cat <<EOF > /opt/lxccu/config
+		cat > "${LXCCU_ROOT}config" <<EOF
 lxc.mount.entry = proc proc proc nodev,noexec,nosuid 0 0
 lxc.mount.entry = sysfs sys sysfs defaults  0 0
 lxc.mount.entry = varfs var tmpfs defaults,size=196M 0 0
@@ -128,25 +160,29 @@ lxc.utsname = lxccu
 lxc.network.type = veth
 lxc.network.flags = up
 lxc.network.link = lxccubr0
-lxc.network.hwaddr = 4a:49:43:49:79:bf
-lxc.rootfs = /var/lib/lxc/lxccu/root
+lxc.network.hwaddr = 4a:49:43:49:79:${lastoctet_macaddress}
+lxc.rootfs = ${LXCCU_ROOT}root
 EOF
 		
-		# add container
-		echo "create lxc container lxccu"
-		lxc-create -n lxccu -f "/var/lib/lxc/lxccu/config"
-		retval=$?
-
-		if [ $retval -ne 0 ]; then
-			lxc-create -n lxccu -f "/var/lib/lxc/lxccu/config" -t none
-		fi
-
         # autostart
-        touch "/var/lib/lxc/lxccu/autostart"
-        ln -s /var/lib/lxc/lxccu/config /etc/lxc/auto/lxccu
+
+
+        restore_lxccu_backup
+
+ 		# add container
+		echo "create lxc container lxccu"
+		touch "${LXCCU_ROOT}autostart"
+        ln -s "${LXCCU_ROOT}config" /etc/lxc/auto/lxccu
+		#lxc-create -n "$CONTAINER_NAME" -f "${LXCCU_ROOT}config"
+		#retval=$?
+
+		# if [ $retval -ne 0 ]; then
+		# 	lxc-create -n lxccu -f "/var/lib/lxc/lxccu/config" -t none
+		# fi
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
+		remove_lxccu
     ;;
 
     *)
