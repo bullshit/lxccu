@@ -30,3 +30,13 @@ install lxccu
 apt-get install lsb-release
 wget -nv -O- https://www.biglan.at/oskar/lxccu/setup.sh | bash -
 ```
+
+# Usage
+
+After installation -> reboot (lxc autostart)
+
+You can acess via raspberry pi with the command 
+```
+lxc-console -n lxccu -t 1
+```
+or enable ssh (homematic webui)
