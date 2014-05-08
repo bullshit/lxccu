@@ -23,6 +23,7 @@ case "$1" in
         CONTAINER_EXITS=$(lxc-list | grep -E "^ *$CONTAINER_NAME\$" | wc -l)
         if [ $CONTAINER_EXITS -ne 0 ]; then
             lxc-stop -n "$CONTAINER_NAME"
+            sleep 5
             lxc-destroy -n "$CONTAINER_NAME"
         fi
         if [ -f "$LXC_AUTOSTART" ]; then

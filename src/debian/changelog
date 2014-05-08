@@ -1,4 +1,4 @@
-lxccu (1.1) UNRELEASED; urgency=low
+lxccu (1.4) UNRELEASED; urgency=low
 
   * Initial release.
   * system log information
@@ -6,5 +6,7 @@ lxccu (1.1) UNRELEASED; urgency=low
   * backup feature
   * change loglevel to info # enable it when lxc version is higher than 0.8
   * automatic reboot after addon installation
+  * fix CT bridge problem
+  * add dependency arping
 
  -- LXCCU Team <team@lxccu.org>  Thu, 24 Apr 2014 17:00:39 +0000

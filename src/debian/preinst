@@ -30,6 +30,20 @@ backup_lxccu () {
 
 case "$1" in
     install)
+        # mount cgroup
+        if [ $(mount | grep cgroup | wc -l) ]; then
+            cgroup_mounted=$(cat /etc/fstab | grep cgroup | wc -l)
+            if [ $cgroup_mounted -eq 0 ]; then
+                echo "lxc /sys/fs/cgroup cgroup defaults 0 0" >> /etc/fstab
+            fi
+            mount -a
+        fi
+        
+        count=$(brctl show | awk 'NR % 2 == 0' | awk '{print $1}' | wc -l)
+        if [ $count -gt 0 ]; then
+            exit 0
+        fi
+
 		if  ip addr show lxccubr0 > /dev/null 2>&1 ; then
 			echo "Bridge already exists"
 		else
@@ -41,15 +55,6 @@ iface lxccubr0 inet dhcp
   bridge_ports $DEVICES	
 EOF
 		ifup lxccubr0
-        fi
-
-        # mount cgroup
-        if [ $(mount | grep cgroup | wc -l) ]; then
-            cgroup_mounted=$(cat /etc/fstab | grep cgroup | wc -l)
-            if [ $cgroup_mounted -eq 0 ]; then
-                echo "lxc /sys/fs/cgroup cgroup defaults 0 0" >> /etc/fstab
-            fi
-            mount -a
         fi
     ;;
 

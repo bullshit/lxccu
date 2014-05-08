@@ -24,7 +24,7 @@ set -e
 UPGRADE=0
 
 lastoctet_macaddress=""
-
+bridgename=""
 
 case "$1" in
     configure)
@@ -99,6 +99,15 @@ case "$1" in
 			restore_lxccu_backup
 		fi
 
+		# bridge 
+		echo "check bridge"
+
+        bridgename=$(brctl show | awk 'NR % 2 == 0' | awk '{print $1}' | head -n 1)
+        if [ -z "$bridgename" ]; then
+            bridgename="lxccubr0"
+        fi
+
+
 		# lxc config file
 		echo "create lxc config file"
 		cat > "${LXCCU_ROOT}config" <<EOF
@@ -145,7 +154,7 @@ lxc.cgroup.devices.allow = c 5:2 rwm
 lxc.utsname = lxccu
 lxc.network.type = veth
 lxc.network.flags = up
-lxc.network.link = lxccubr0
+lxc.network.link = ${bridgename}
 lxc.network.hwaddr = 4a:49:43:49:79:${lastoctet_macaddress}
 lxc.rootfs = ${LXCCU_ROOT}root
 EOF
@@ -160,6 +169,9 @@ EOF
         ln -s "${LXCCU_ROOT}config" "$LXC_AUTOSTART"
 
         lxc-start -n "$CONTAINER_NAME" -d
+
+        echo "using bridge: ${bridgename}"
+        echo "mac address: 4a:49:43:49:79:${lastoctet_macaddress}"
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

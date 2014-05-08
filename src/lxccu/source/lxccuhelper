@@ -1,7 +1,7 @@
 #!/bin/bash
 
 EQ3_FW_VERSION="2.7.17"
-LXCCU_VERSION="1.1"
+LXCCU_VERSION="1.4"
 
 
 ROOT_PATH="/var/lib/lxccu/"
@@ -43,4 +43,18 @@ restore_lxccu_backup () {
 	rm /opt/lxccu_config_backup
 	rm /opt/lxccu_backup.tar.gz
 }
+
+
+# get_bridge_name() {
+# 	local bridgename=""
+# 	bridgename=$(brctl show | awk 'NR % 2 == 0' | awk '{print $1}' | grep -v lxccubr0 )
+# 	#count=$(brctl show | awk 'NR % 2 == 0' | awk '{print $1}' | wc -l)
+# 	if [ -z "$bridgename" ]; then
+# 		echo "lxccubr0"
+# 	else
+# 		echo "$bridgename"
+# 	fi
+# }
+
+
 
