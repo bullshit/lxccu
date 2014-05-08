@@ -158,6 +158,8 @@ EOF
 		echo "create lxc container lxccu"
 		touch "${LXCCU_ROOT}autostart"
         ln -s "${LXCCU_ROOT}config" "$LXC_AUTOSTART"
+
+        lxc-start -n "$CONTAINER_NAME" -d
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

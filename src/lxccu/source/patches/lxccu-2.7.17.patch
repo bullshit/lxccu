@@ -1,6 +1,6 @@
 diff -rupN fs_original/bin/mountSD fs/bin/mountSD
---- fs_original/bin/mountSD	2014-02-20 11:46:27.000000000 +0100
-+++ fs/bin/mountSD	2014-04-20 02:48:58.797917541 +0200
+--- fs_original/bin/mountSD	2014-05-08 17:09:41.753798080 +0000
++++ fs/bin/mountSD	2014-05-08 17:17:46.851464134 +0000
 @@ -1,10 +1,10 @@
  #!/bin/sh
  echo "Starte mountSD: $@" > /tmp/dudu
@@ -16,8 +16,8 @@ diff -rupN fs_original/bin/mountSD fs/bin/mountSD
 +# fi
  
 diff -rupN fs_original/bin/update_firmware_pre fs/bin/update_firmware_pre
---- fs_original/bin/update_firmware_pre	2014-02-20 11:46:29.000000000 +0100
-+++ fs/bin/update_firmware_pre	2014-04-20 02:48:58.877927235 +0200
+--- fs_original/bin/update_firmware_pre	2014-05-08 17:09:41.883799545 +0000
++++ fs/bin/update_firmware_pre	2014-05-08 17:20:02.762309854 +0000
 @@ -1,5 +1,5 @@
  #!/bin/sh
 -
@@ -114,9 +114,9 @@ diff -rupN fs_original/bin/update_firmware_pre fs/bin/update_firmware_pre
 +# pivot_root . oldroot
  
 diff -rupN fs_original/bin/update_firmware_run fs/bin/update_firmware_run
---- fs_original/bin/update_firmware_run	2014-02-20 11:46:29.000000000 +0100
-+++ fs/bin/update_firmware_run	2014-04-20 02:50:04.956793003 +0200
-@@ -1,36 +1,71 @@
+--- fs_original/bin/update_firmware_run	2014-05-08 17:09:41.883799545 +0000
++++ fs/bin/update_firmware_run	2014-05-08 17:19:12.932167225 +0000
+@@ -1,36 +1,70 @@
  #!/bin/sh
  
 -mount /proc
@@ -177,8 +177,8 @@ diff -rupN fs_original/bin/update_firmware_run fs/bin/update_firmware_run
 +echo "LXCCU: Entering addon install mode"
 +log "LXCCU: Entering addon install mode"
 +if [ ! -f /var/new_firmware.tar.gz ]; then
-+  log "LXCCU: addon image archive does not exist. Rebooting"
-+  echo "LXCCU: addon image archive does not exist. Rebooting"
++  log "LXCCU: addon image archive does not exist. Nothing to do"
++  echo "LXCCU: addon image archive does not exist. Nothing to do"
 +  exit
  fi
  
@@ -201,13 +201,12 @@ diff -rupN fs_original/bin/update_firmware_run fs/bin/update_firmware_run
 +log "LXCCU: extract addon archive"
 +cd /var
 +cat new_firmware.tar.gz | gunzip | tar x
++rm new_firmware.tar.gz
 +if [ ! -x /var/update_script ]; then
-+  log "LXCCU: Error unzipping addon image archive. Rebooting"
-+  echo "LXCCU: Error unzipping addon image archive. Rebooting"
++  log "LXCCU: Error unzipping addon image archive. Nothing to do"
++  echo "LXCCU: Error unzipping addon image archive. Nothing to do"
 +  exit
 +fi
-+rm new_firmware.tar.gz
-+
 +
 +log "LXCCU: prepare mount points to simulate ccu"
 +echo "LXCCU: prepare mount points to simulate ccu"
@@ -220,14 +219,14 @@ diff -rupN fs_original/bin/update_firmware_run fs/bin/update_firmware_run
 +cd /var/
 +/var/update_script CCU2
 diff -rupN fs_original/etc/config_templates/ntpclient fs/etc/config_templates/ntpclient
---- fs_original/etc/config_templates/ntpclient	2014-02-20 11:46:27.000000000 +0100
-+++ fs/etc/config_templates/ntpclient	2014-04-20 02:48:58.997941775 +0200
+--- fs_original/etc/config_templates/ntpclient	2014-05-08 17:09:43.203814258 +0000
++++ fs/etc/config_templates/ntpclient	2014-05-08 17:17:46.861464256 +0000
 @@ -1 +1 @@
 -NTPSERVERS='ntp.homematic.com'
 +NTPSERVERS='0.de.pool.ntp.org'
 diff -rupN fs_original/etc/fstab fs/etc/fstab
---- fs_original/etc/fstab	2014-02-20 11:46:27.000000000 +0100
-+++ fs/etc/fstab	2014-04-20 02:48:59.007942986 +0200
+--- fs_original/etc/fstab	2014-05-08 17:09:43.213814368 +0000
++++ fs/etc/fstab	2014-05-08 17:17:46.871464378 +0000
 @@ -1,13 +1,3 @@
  # /etc/fstab: static file system information.
  #
@@ -242,74 +241,9 @@ diff -rupN fs_original/etc/fstab fs/etc/fstab
 -varfs           /var           tmpfs    defaults,size=196M 0      0
 -debugfs 	/sys/kernel/debug debugfs 		  0 	0
 -ubi1:user	/usr/local	ubifs	defaults,noatime,rw,sync	0 0
-diff -rupN fs_original/etc/init.d/_40UsbNetwork fs/etc/init.d/_40UsbNetwork
---- fs_original/etc/init.d/_40UsbNetwork	1970-01-01 01:00:00.000000000 +0100
-+++ fs/etc/init.d/_40UsbNetwork	2014-04-20 02:48:59.037946621 +0200
-@@ -0,0 +1,52 @@
-+#!/bin/sh
-+#
-+# Starts Ethernet over USB
-+#
-+
-+
-+start() {
-+	export TZ=`cat /etc/config/TZ`
-+
-+	echo -n "Starting network over usb: "
-+		
-+	if [ ! -f /etc/udhcpd.usb0.conf ]; then
-+		echo "ERROR (file /etc/udhcp.usb0.conf not found)"
-+	elif [ ! -f /etc/dnsd.conf ]; then
-+		echo "ERROR (file /etc/dnsd.conf not found)"
-+	else
-+		ifconfig usb0 10.101.82.51 netmask 255.255.255.0
-+		udhcpd -S /etc/udhcpd.usb0.conf
-+		# disable DNS Server; CCU can only be access by ip address
-+		#dnsd -d -c /etc/dnsd.conf -i 10.101.82.51
-+		echo "OK"	
-+	fi		
-+}
-+
-+stop() {
-+	echo -n "Stopping network over usb: "
-+	killall udhcpd
-+	killall dnsd	
-+	echo "OK"
-+}
-+restart() {
-+	stop
-+	start
-+}
-+
-+case "$1" in
-+  start)
-+	start
-+	;;
-+  stop)
-+	stop
-+	;;
-+  restart|reload)
-+	restart
-+	;;
-+  *)
-+	echo "Usage: $0 {start|stop|restart}"
-+	exit 1
-+esac
-+
-+exit $?
-+
-diff -rupN fs_original/etc/init.d/rcS fs/etc/init.d/rcS
---- fs_original/etc/init.d/rcS	2012-08-31 10:49:41.000000000 +0200
-+++ fs/etc/init.d/rcS	2014-04-20 02:48:59.137958734 +0200
-@@ -25,3 +25,4 @@ for i in /etc/init.d/S??* ;do
-     esac
- done
- 
-+/bin/mountSD
-\ No newline at end of file
 diff -rupN fs_original/etc/init.d/S00eQ3SystemStart fs/etc/init.d/S00eQ3SystemStart
---- fs_original/etc/init.d/S00eQ3SystemStart	2014-02-20 11:46:27.000000000 +0100
-+++ fs/etc/init.d/S00eQ3SystemStart	2014-04-20 02:48:59.147959946 +0200
+--- fs_original/etc/init.d/S00eQ3SystemStart	2014-05-08 17:09:43.153813706 +0000
++++ fs/etc/init.d/S00eQ3SystemStart	2014-05-08 17:20:18.852322109 +0000
 @@ -4,104 +4,104 @@
  #
  
@@ -491,7 +425,15 @@ diff -rupN fs_original/etc/init.d/S00eQ3SystemStart fs/etc/init.d/S00eQ3SystemSt
  }
  
  start() {
-@@ -123,16 +123,16 @@ restart() {
+@@ -116,6 +116,7 @@ start() {
+ stop () {
+ 	start-stop-daemon -K -q -p /var/run/crond.pid
+ 	/bin/update_firmware_pre
++	/bin/update_firmware_run
+ }
+ 
+ restart() {
+@@ -123,16 +124,16 @@ restart() {
  }
  
  case "$1" in
@@ -513,8 +455,8 @@ diff -rupN fs_original/etc/init.d/S00eQ3SystemStart fs/etc/init.d/S00eQ3SystemSt
  	exit 1
  esac
 diff -rupN fs_original/etc/init.d/S40UsbNetwork fs/etc/init.d/S40UsbNetwork
---- fs_original/etc/init.d/S40UsbNetwork	2014-02-20 11:46:27.000000000 +0100
-+++ fs/etc/init.d/S40UsbNetwork	1970-01-01 01:00:00.000000000 +0100
+--- fs_original/etc/init.d/S40UsbNetwork	2014-05-08 17:09:43.143813596 +0000
++++ fs/etc/init.d/S40UsbNetwork	1970-01-01 00:00:00.000000000 +0000
 @@ -1,52 +0,0 @@
 -#!/bin/sh
 -#
@@ -569,8 +511,8 @@ diff -rupN fs_original/etc/init.d/S40UsbNetwork fs/etc/init.d/S40UsbNetwork
 -exit $?
 -
 diff -rupN fs_original/etc/init.d/S50eq3configd fs/etc/init.d/S50eq3configd
---- fs_original/etc/init.d/S50eq3configd	2014-02-20 11:46:27.000000000 +0100
-+++ fs/etc/init.d/S50eq3configd	2014-04-20 02:48:59.257973271 +0200
+--- fs_original/etc/init.d/S50eq3configd	2014-05-08 17:09:43.133813486 +0000
++++ fs/etc/init.d/S50eq3configd	2014-05-08 17:17:46.891464622 +0000
 @@ -1,52 +1,52 @@
  #!/bin/sh
  #
@@ -653,8 +595,8 @@ diff -rupN fs_original/etc/init.d/S50eq3configd fs/etc/init.d/S50eq3configd
 +exit	$?
  
 diff -rupN fs_original/etc/init.d/S60rfd fs/etc/init.d/S60rfd
---- fs_original/etc/init.d/S60rfd	2014-02-20 11:47:13.000000000 +0100
-+++ fs/etc/init.d/S60rfd	2014-04-20 02:48:59.287976905 +0200
+--- fs_original/etc/init.d/S60rfd	2014-05-08 17:09:43.153813706 +0000
++++ fs/etc/init.d/S60rfd	2014-05-08 17:17:46.891464622 +0000
 @@ -25,31 +25,31 @@ init() {
  	export TZ=`cat /etc/config/TZ`
  
@@ -717,8 +659,8 @@ diff -rupN fs_original/etc/init.d/S60rfd fs/etc/init.d/S60rfd
  	exit 1
  esac
 diff -rupN fs_original/etc/init.d/S99eQ3SystemStarted fs/etc/init.d/S99eQ3SystemStarted
---- fs_original/etc/init.d/S99eQ3SystemStarted	2014-02-20 11:46:27.000000000 +0100
-+++ fs/etc/init.d/S99eQ3SystemStarted	2014-04-20 02:48:59.508003556 +0200
+--- fs_original/etc/init.d/S99eQ3SystemStarted	2014-05-08 17:09:43.163813817 +0000
++++ fs/etc/init.d/S99eQ3SystemStarted	2014-05-08 17:17:46.901464744 +0000
 @@ -4,32 +4,32 @@
  #
  
@@ -784,10 +726,75 @@ diff -rupN fs_original/etc/init.d/S99eQ3SystemStarted fs/etc/init.d/S99eQ3System
  	echo "Usage: $0 {start|stop|restart}"
  	exit 1
  esac
+diff -rupN fs_original/etc/init.d/_40UsbNetwork fs/etc/init.d/_40UsbNetwork
+--- fs_original/etc/init.d/_40UsbNetwork	1970-01-01 00:00:00.000000000 +0000
++++ fs/etc/init.d/_40UsbNetwork	2014-05-08 17:17:46.871464378 +0000
+@@ -0,0 +1,52 @@
++#!/bin/sh
++#
++# Starts Ethernet over USB
++#
++
++
++start() {
++	export TZ=`cat /etc/config/TZ`
++
++	echo -n "Starting network over usb: "
++		
++	if [ ! -f /etc/udhcpd.usb0.conf ]; then
++		echo "ERROR (file /etc/udhcp.usb0.conf not found)"
++	elif [ ! -f /etc/dnsd.conf ]; then
++		echo "ERROR (file /etc/dnsd.conf not found)"
++	else
++		ifconfig usb0 10.101.82.51 netmask 255.255.255.0
++		udhcpd -S /etc/udhcpd.usb0.conf
++		# disable DNS Server; CCU can only be access by ip address
++		#dnsd -d -c /etc/dnsd.conf -i 10.101.82.51
++		echo "OK"	
++	fi		
++}
++
++stop() {
++	echo -n "Stopping network over usb: "
++	killall udhcpd
++	killall dnsd	
++	echo "OK"
++}
++restart() {
++	stop
++	start
++}
++
++case "$1" in
++  start)
++	start
++	;;
++  stop)
++	stop
++	;;
++  restart|reload)
++	restart
++	;;
++  *)
++	echo "Usage: $0 {start|stop|restart}"
++	exit 1
++esac
++
++exit $?
++
+diff -rupN fs_original/etc/init.d/rcS fs/etc/init.d/rcS
+--- fs_original/etc/init.d/rcS	2014-05-08 17:09:43.133813486 +0000
++++ fs/etc/init.d/rcS	2014-05-08 17:17:46.871464378 +0000
+@@ -25,3 +25,4 @@ for i in /etc/init.d/S??* ;do
+     esac
+ done
+ 
++/bin/mountSD
+\ No newline at end of file
 diff -rupN fs_original/etc/inittab fs/etc/inittab
---- fs_original/etc/inittab	2014-02-20 11:53:23.000000000 +0100
-+++ fs/etc/inittab	2014-04-20 02:48:59.518004767 +0200
-@@ -14,18 +14,20 @@
+--- fs_original/etc/inittab	2014-05-08 17:09:43.243814699 +0000
++++ fs/etc/inittab	2014-05-08 17:40:42.737641911 +0000
+@@ -14,27 +14,31 @@
  # process   == program to run
  
  # Startup the system
@@ -811,7 +818,10 @@ diff -rupN fs_original/etc/inittab fs/etc/inittab
  
  # Stuff to do for the 3-finger salute
  ::ctrlaltdel:/sbin/reboot
-@@ -35,6 +37,8 @@ ttyGS0::respawn:/sbin/getty -L ttyGS0 11
+ 
+ # Stuff to do for SIGQUIT 
+-::restart:/bin/update_firmware_run
++#::restart:/bin/update_firmware_run
  
  # Stuff to do before rebooting
  ::shutdown:/etc/init.d/rcK
@@ -823,8 +833,8 @@ diff -rupN fs_original/etc/inittab fs/etc/inittab
 +# create a console for lxc
 +tty1::respawn:/sbin/getty -L tty1 115200 linux
 diff -rupN fs_original/opt/mh/startup.sh fs/opt/mh/startup.sh
---- fs_original/opt/mh/startup.sh	2014-02-20 11:46:29.000000000 +0100
-+++ fs/opt/mh/startup.sh	2014-04-20 02:48:59.578012035 +0200
+--- fs_original/opt/mh/startup.sh	2014-05-08 17:09:46.293847878 +0000
++++ fs/opt/mh/startup.sh	2014-05-08 17:17:46.911464866 +0000
 @@ -19,9 +19,9 @@ if [ ! -e $USER_DIR ] ; then
  
  fi
@@ -839,8 +849,8 @@ diff -rupN fs_original/opt/mh/startup.sh fs/opt/mh/startup.sh
  
  l1=`ifconfig | grep 'eth0' | tr -s ' ' | cut -d ' ' -f5 | tr ':' '-'`
 diff -rupN fs_original/www/api/methods/bidcosrf/setconfiguration-rf.tcl fs/www/api/methods/bidcosrf/setconfiguration-rf.tcl
---- fs_original/www/api/methods/bidcosrf/setconfiguration-rf.tcl	2014-02-20 11:48:34.000000000 +0100
-+++ fs/www/api/methods/bidcosrf/setconfiguration-rf.tcl	2014-04-20 02:48:59.628018092 +0200
+--- fs_original/www/api/methods/bidcosrf/setconfiguration-rf.tcl	2014-05-08 17:10:02.704007568 +0000
++++ fs/www/api/methods/bidcosrf/setconfiguration-rf.tcl	2014-05-08 17:17:46.911464866 +0000
 @@ -20,32 +20,32 @@ set fd [open /etc/config/rfd.conf w]
  puts $fd "# This File was automatically generated"
  puts $fd "# TCP Port for XmlRpc connections"
@@ -888,8 +898,8 @@ diff -rupN fs_original/www/api/methods/bidcosrf/setconfiguration-rf.tcl fs/www/a
  #Lan Interfaces (RF)
  set i 1
 diff -rupN fs_original/www/config/control_panel.cgi fs/www/config/control_panel.cgi
---- fs_original/www/config/control_panel.cgi	2014-02-20 11:48:37.000000000 +0100
-+++ fs/www/config/control_panel.cgi	2014-04-20 02:48:59.638019304 +0200
+--- fs_original/www/config/control_panel.cgi	2014-05-08 17:10:05.604032580 +0000
++++ fs/www/config/control_panel.cgi	2014-05-08 17:17:46.921464988 +0000
 @@ -159,10 +159,10 @@ puts {
  
      <!-- Storage Settings -->
@@ -904,8 +914,8 @@ diff -rupN fs_original/www/config/control_panel.cgi fs/www/config/control_panel.
  
  	  </tr>
 diff -rupN fs_original/www/config/cp_maintenance.cgi fs/www/config/cp_maintenance.cgi
---- fs_original/www/config/cp_maintenance.cgi	2014-02-20 11:48:37.000000000 +0100
-+++ fs/www/config/cp_maintenance.cgi	2014-04-20 02:48:59.688025361 +0200
+--- fs_original/www/config/cp_maintenance.cgi	2014-05-08 17:10:05.514031817 +0000
++++ fs/www/config/cp_maintenance.cgi	2014-05-08 17:17:46.931465110 +0000
 @@ -327,82 +327,82 @@ proc action_put_page {} {
                                  puts "$cur_version"
                              }
@@ -1066,8 +1076,8 @@ diff -rupN fs_original/www/config/cp_maintenance.cgi fs/www/config/cp_maintenanc
                  }
                  table_data {align="left"} {class="CLASS20921"} {
 diff -rupN fs_original/www/config/cp_security.cgi fs/www/config/cp_security.cgi
---- fs_original/www/config/cp_security.cgi	2014-02-20 11:48:37.000000000 +0100
-+++ fs/www/config/cp_security.cgi	2014-04-20 02:48:59.818041109 +0200
+--- fs_original/www/config/cp_security.cgi	2014-05-08 17:10:05.584032411 +0000
++++ fs/www/config/cp_security.cgi	2014-05-08 17:17:46.931465110 +0000
 @@ -196,12 +196,13 @@ proc action_factory_reset_go {} {
      }
      if { [catch {
@@ -1119,3 +1129,16 @@ diff -rupN fs_original/www/config/cp_security.cgi fs/www/config/cp_security.cgi
          division {class="popupTitle"} {
              puts "\${dialogSettingsSecurityMessageSysBackupRestartSystemTitle}"
          }
+diff -rupN fs_original/www/config/cp_software.cgi fs/www/config/cp_software.cgi
+--- fs_original/www/config/cp_software.cgi	2014-05-08 17:10:05.434031139 +0000
++++ fs/www/config/cp_software.cgi	2014-05-08 17:41:19.106305923 +0000
+@@ -507,7 +507,8 @@ proc action_install_start {} {
+     if {[isOldCCU]} {
+         exec /sbin/init -q
+     } else {
+-        exec /bin/kill -SIGQUIT 1
++        #exec /bin/kill -SIGQUIT 1
++        exec /sbin/reboot
+     }
+ }
+ 
