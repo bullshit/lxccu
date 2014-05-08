@@ -1,7 +1,9 @@
-lxccu (1.0-6) UNRELEASED; urgency=low
+lxccu (1.0-7) UNRELEASED; urgency=low
 
   * Initial release.
   * system log information
   * prepare upgrade, clean up installation process, random mac address 
+  * backup feature
+  * change loglevel to info
 
  -- LXCCU Team <team@lxccu.org>  Thu, 24 Apr 2014 17:00:39 +0000

@@ -13,9 +13,19 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-
 backup_lxccu () {
+    if [ -f /opt/lxccu_backup.tar.gz ]; then
+        # maybe save it on purge
+        rm /opt/lxccu_backup.tar.gz
+        rm /opt/lxccu_config_backup
+    fi
     echo "backup"
+    lxc-stop -n lxccu
+    echo "sleep 5"
+    sleep 5
+    cd /var/lib/lxc/lxccu/root
+    tar czf /opt/lxccu_backup.tar.gz usr/local
+    cp /var/lib/lxc/lxccu/config /opt/lxccu_config_backup
 }
 
 case "$1" in

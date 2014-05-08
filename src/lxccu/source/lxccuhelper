@@ -1,0 +1,46 @@
+#!/bin/bash
+
+EQ3_FW_VERSION="2.7.17"
+LXCCU_VERSION="1.0-7"
+
+
+ROOT_PATH="/var/lib/lxccu/"
+LXCCU_ROOT="/var/lib/lxc/lxccu/"
+LXCCU_ROOTFS="/var/lib/lxc/lxccu/root"
+CONTAINER_NAME="lxccu"
+LXC_AUTOSTART="/etc/lxc/auto/lxccu"
+logdebug () {
+	#echo "Debug: $1 $2"
+	return
+}
+#QUIET=""
+QUIET="--quiet"
+
+
+
+remove_lxccu () {
+	echo "check if container exists"
+	CONTAINER_EXITS=$(lxc-list | grep -E "^ *lxccu\$" | wc -l)
+	if [ $CONTAINER_EXITS -ne 0 ]; then
+		lxc-stop -n "$CONTAINER_NAME"
+		lxc-destroy -n "$CONTAINER_NAME"
+	fi
+	if [ -f /etc/lxc/auto/lxccu ]; then
+		unlink /etc/lxc/auto/lxccu
+	fi
+	echo "remove files"
+	if [ -d "$LXCCU_ROOT" ]; then
+		rm -rf $LXCCU_ROOT
+	fi
+}
+
+restore_lxccu_backup () {
+	echo "restore"
+	cd /var/lib/lxc/lxccu/root
+	tar xzf /opt/lxccu_backup.tar.gz
+	lastoctet_macaddress=`grep '^ *lxc\.network\.hwaddr *=' /opt/lxccu_config_backup | cut -d':' -f6`
+	echo "remove install backup"
+	rm /opt/lxccu_config_backup
+	rm /opt/lxccu_backup.tar.gz
+}
+

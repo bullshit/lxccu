@@ -16,28 +16,21 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-LXCCU_ROOT="/var/lib/lxc/lxccu/"
-CONTAINER_NAME="lxccu"
+. /var/lib/lxccu/source/lxccuhelper
 
 case "$1" in
     remove|deconfigure)
-        CONTAINER_EXITS=$(lxc-list | grep -E "^ {2}lxccu\$" | wc -l)
+        CONTAINER_EXITS=$(lxc-list | grep -E "^ *$CONTAINER_NAME\$" | wc -l)
         if [ $CONTAINER_EXITS -ne 0 ]; then
             lxc-stop -n "$CONTAINER_NAME"
             lxc-destroy -n "$CONTAINER_NAME"
         fi
-        if [ -f /etc/lxc/auto/lxccu ]; then
-            unlink /etc/lxc/auto/lxccu
+        if [ -f "$LXC_AUTOSTART" ]; then
+            unlink "$LXC_AUTOSTART"
         fi
         if [ -d "$LXCCU_ROOT" ]; then
             rm -rf $LXCCU_ROOT
         fi
-        /var/lib/ubi_reader/ui
-        rm -rf /var/lib/ubi_reader/ubifs/nodes
-        rm -rf /var/lib/ubi_reader/ubi_io
-        rm -rf /var/lib/ubi_reader/ubi/volume
-        rm -rf /var/lib/ubi_reader/ubi/headers
-        rm -rf /var/lib/ubi_reader/ubi/block
     ;;
     upgrade)
         # stop container
