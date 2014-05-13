@@ -1,60 +1,7 @@
 #!/bin/bash   
-cpuinfo_file="/proc/cpuinfo"
-issue_file="/etc/issue"
-debian_version_file="/etc/debian_version"
-timezone_file="/etc/timezone"
-rpi_issue_file="/etc/rpi-issue"
-fstab_file="/etc/fstab"
-apt_sources_file="/etc/apt/sources.list"
+currentip=$(cat /var/lib/lxc/lxccu/root/usr/local/etc/config/netconfig|grep -i CURRENT_IP=|cut -d "=" -f 2)
+currentmac=$(grep '^ *lxc\.network\.hwaddr *='  /var/lib/lxc/lxccu/config | cut -d'=' -f2)
 
-uname=`uname -a`
-lxc_version=`lxc-version`
-lxc_package=`dpkg -l|grep lxc`
-
-lxc_check_config=`lxc-checkconfig | grep -v "\-" | sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g"`
-deviceinfo=""
-if [ -e "$cpuinfo_file" ]; then
-    tmp=`cat $cpuinfo_file`
-    deviceinfo="cpuinfo:\n$tmp\n"
-fi
-deviceinfo="$deviceinfo \nlxcconfig:\n$lxc_check_config\n"
-if [ -e "$fstab_file" ]; then
-    fstab_file=`cat $fstab_file | grep -v "#" `
-    deviceinfo="$deviceinfo \nfstab_file:\n$fstab_file\n"
-fi
-if [ -e "$issue_file" ]; then
-    issue=`cat $issue_file`
-    deviceinfo="$deviceinfo \nos:\n$issue\n"
-fi
-if [ -e "$debian_version_file" ]; then
-    debian_version=`cat $debian_version_file`
-    deviceinfo="$deviceinfo \ndebian_version:\n$debian_version\n"
-fi
-if [ -e "$timezone_file" ]; then
-    timezone=`cat $timezone_file`
-    deviceinfo="$deviceinfo \ntimezone:\n$timezone\n"
-fi
-if [ -e "$rpi_issue_file" ]; then
-    rpi_issue=`cat $rpi_issue_file`
-    deviceinfo="$deviceinfo \nrpi_issue:\n$rpi_issue\n"
-fi
-
-if [ -e "$apt_sources_file" ]; then
-    sources_list=`cat $apt_sources_file | grep -v "#"`
-    deviceinfo="$deviceinfo \nsources_list:\n$sources_list\n"
-fi
-deviceinfo="$deviceinfo \nlxc_version:\n$lxc_version \n"
-deviceinfo="$deviceinfo \nlxc_package:\n$lxc_package \n"
-
-deviceinfo="$deviceinfo \nuname:\n$uname\n"
-
-# url="http://api.536514f44cbecf864f000008.boweryapps.com/betatest/addinstallation"
-
-# echo "The following data will be logged"
-# echo "==========================================="
-# echo $deviceinfo
-# echo "==========================================="
-# wget --quiet --post-data="information=$deviceinfo" $url -O /dev/null  
-
-echo -e "$deviceinfo" > /opt/lxccu_beta_deviceinfo
-echo "device information saved (/opt/lxccu_beta_deviceinfo) "
+echo "LXCCU IP address: ${currentip}"
+echo "LXCCU MAC address: ${currentmac}"
+exit 0

@@ -4,4 +4,4 @@ src/debian/lxccu/
 *.ex
 # misc
 *.deb
-*lxccu*_all
+lxccu_*

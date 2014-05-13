@@ -1,3 +1,4 @@
 lxccu var/lib
 ubi_reader var/lib
 lxccuinfo usr/bin
+lxccubetainfo usr/bin
