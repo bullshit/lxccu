@@ -28,6 +28,8 @@ bridgename=""
 
 case "$1" in
     configure)
+		LXCCU_VERSION=$2
+
 		if [ -f /opt/lxccu_backup.tar.gz ]; then
 			UPGRADE=1
 		fi
