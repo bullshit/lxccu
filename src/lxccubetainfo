@@ -6,6 +6,7 @@ timezone_file="/etc/timezone"
 rpi_issue_file="/etc/rpi-issue"
 fstab_file="/etc/fstab"
 apt_sources_file="/etc/apt/sources.list"
+apt_lxccusources_file="/etc/apt/sources.list.d/lxccu.list"
 
 uname=`uname -a`
 lxc_version=`lxc-version`
@@ -41,20 +42,17 @@ fi
 
 if [ -e "$apt_sources_file" ]; then
     sources_list=`cat $apt_sources_file | grep -v "#"`
-    deviceinfo="$deviceinfo \nsources_list:\n$sources_list\n"
+    
+    # lxccu source
+    lxccu_sources_list=`cat $apt_lxccusources_file | grep -v "#"`
+
+    deviceinfo="$deviceinfo \nsources_list:\n$sources_list\n$lxccu_sources_list\n"
 fi
 deviceinfo="$deviceinfo \nlxc_version:\n$lxc_version \n"
 deviceinfo="$deviceinfo \nlxc_package:\n$lxc_package \n"
 
 deviceinfo="$deviceinfo \nuname:\n$uname\n"
 
-# url="http://api.536514f44cbecf864f000008.boweryapps.com/betatest/addinstallation"
-
-# echo "The following data will be logged"
-# echo "==========================================="
-# echo $deviceinfo
-# echo "==========================================="
-# wget --quiet --post-data="information=$deviceinfo" $url -O /dev/null  
-
 echo -e "$deviceinfo" > /opt/lxccu_beta_deviceinfo
 echo "device information saved (/opt/lxccu_beta_deviceinfo) "
+exit 0

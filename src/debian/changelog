@@ -1,4 +1,4 @@
-lxccu (1.5) UNRELEASED; urgency=low
+lxccu (1.5-1) UNRELEASED; urgency=low
 
   * Initial release.
   * system log information
@@ -9,5 +9,6 @@ lxccu (1.5) UNRELEASED; urgency=low
   * fix CT bridge problem
   * add dependency arping
   * remove dependency arping, improve lxccuinfo
+  * 
 
  -- LXCCU Team <team@lxccu.org>  Thu, 24 Apr 2014 17:00:39 +0000
