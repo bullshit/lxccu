@@ -162,7 +162,7 @@ lxc.rootfs = ${LXCCU_ROOT}root
 EOF
 		
 		#update version number
-		echo "VERSION=${EQ3_FW_VERSION} - LXCCU: ${LXCCU_VERSION}" > "${LXCCU_ROOTFS}/boot/VERSION"
+		echo "VERSION=${LXCCU_VERSION}" > "${LXCCU_ROOTFS}/boot/LXCCUVERSION"
 
         # autostart
  		# add container
