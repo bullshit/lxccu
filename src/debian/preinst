@@ -19,10 +19,23 @@ backup_lxccu () {
         rm /opt/lxccu_backup.tar.gz
         rm /opt/lxccu_config_backup
     fi
-    echo "backup"
-    lxc-stop -n lxccu
-    echo "sleep 5"
-    sleep 5
+    if lxc-info -n "$CONTAINER_NAME" | grep -qs "STOPPED"
+    then
+        echo "shutdown lxccu"
+        lxc-shutdown -n lxccu
+        timeout=30
+        while [ $timeout -gt 0 ]
+        do
+            echo "waiting for lxccu shutdown"
+            timeout=$(($timeout-1));sleep 1
+            if lxc-info -n lxccu | grep -qs "STOPPED"
+            then
+                timeout=0
+            fi
+        done
+        echo "lxccu shutdown complete"
+    fi
+    lxc-destroy -n lxccu
     cd /var/lib/lxc/lxccu/root
     tar czf /opt/lxccu_backup.tar.gz usr/local
     cp /var/lib/lxc/lxccu/config /opt/lxccu_config_backup
