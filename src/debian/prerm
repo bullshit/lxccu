@@ -20,32 +20,7 @@ set -e
 
 case "$1" in
     remove|deconfigure)
-        CONTAINER_EXITS=$(lxc-list | grep -E "^ *$CONTAINER_NAME\$" | wc -l)
-        if [ $CONTAINER_EXITS -ne 0 ]; then
-            if lxc-info -n "$CONTAINER_NAME" | grep -qs "STOPPED"
-            then
-                echo "shutdown lxccu"
-                lxc-shutdown -n "$CONTAINER_NAME"
-                timeout=30
-                while [ $timeout -gt 0 ]
-                do
-                    timeout=$(($timeout-1));sleep 1
-                    echo "waiting for lxccu shutdown"
-                    if lxc-info -n "$CONTAINER_NAME" | grep -qs "STOPPED"
-                    then
-                        timeout=0
-                    fi
-                done
-            fi
-            echo "lxccu shutdown complete"
-            lxc-destroy -n "$CONTAINER_NAME"
-        fi
-        if [ -f "$LXC_AUTOSTART" ]; then
-            unlink "$LXC_AUTOSTART"
-        fi
-        if [ -d "$LXCCU_ROOT" ]; then
-            rm -rf $LXCCU_ROOT
-        fi
+        remove_lxccu
     ;;
     upgrade)
         # stop container

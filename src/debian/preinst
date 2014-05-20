@@ -35,10 +35,12 @@ backup_lxccu () {
         done
         echo "lxccu shutdown complete"
     fi
-    lxc-destroy -n lxccu
+    
     cd /var/lib/lxc/lxccu/root
     tar czf /opt/lxccu_backup.tar.gz usr/local
     cp /var/lib/lxc/lxccu/config /opt/lxccu_config_backup
+
+    lxc-destroy -n lxccu
 }
 
 case "$1" in

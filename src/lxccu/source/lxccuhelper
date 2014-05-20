@@ -16,21 +16,42 @@ logdebug () {
 QUIET="--quiet"
 
 
+stop_lxccu() {
+    CONTAINER_EXITS=$(lxc-list | grep -E "^ *$CONTAINER_NAME\$" | wc -l)
+    if [ $CONTAINER_EXITS -ne 0 ]; then
+        if lxc-info -n "$CONTAINER_NAME" | grep -qs "STOPPED"
+        then
+            echo "shutdown lxccu"
+            lxc-shutdown -n "$CONTAINER_NAME"
+            timeout=30
+            while [ $timeout -gt 0 ]
+            do
+                timeout=$(($timeout-1));sleep 1
+                echo "waiting for lxccu shutdown"
+                if lxc-info -n "$CONTAINER_NAME" | grep -qs "STOPPED"
+                then
+                    timeout=0
+                fi
+            done
+        fi
+    fi	
+}
 
 remove_lxccu () {
-	echo "check if container exists"
-	CONTAINER_EXITS=$(lxc-list | grep -E "^ *lxccu\$" | wc -l)
-	if [ $CONTAINER_EXITS -ne 0 ]; then
-		lxc-stop -n "$CONTAINER_NAME"
-		lxc-destroy -n "$CONTAINER_NAME"
-	fi
-	if [ -f /etc/lxc/auto/lxccu ]; then
-		unlink /etc/lxc/auto/lxccu
-	fi
-	echo "remove files"
-	if [ -d "$LXCCU_ROOT" ]; then
-		rm -rf $LXCCU_ROOT
-	fi
+	stop_lxccu
+	
+    CONTAINER_EXITS=$(lxc-list | grep -E "^ *$CONTAINER_NAME\$" | wc -l)
+    if [ $CONTAINER_EXITS -ne 0 ]; then
+        echo "lxccu shutdown complete"
+        lxc-destroy -n "$CONTAINER_NAME"
+    fi
+    echo "remove files"
+    if [ -f "$LXC_AUTOSTART" ]; then
+        unlink "$LXC_AUTOSTART"
+    fi
+    if [ -d "$LXCCU_ROOT" ]; then
+        rm -rf $LXCCU_ROOT
+    fi
 }
 
 restore_lxccu_backup () {
