@@ -19,20 +19,24 @@ backup_lxccu () {
         rm /opt/lxccu_backup.tar.gz
         rm /opt/lxccu_config_backup
     fi
-    if lxc-info -n "$CONTAINER_NAME" | grep -qs "STOPPED"
+    if lxc-info -n lxccu | grep -qs "RUNNING"
     then
         echo "shutdown lxccu"
-        lxc-shutdown -n lxccu
+        # @TODO when there is a rootfs symlink -> change to shutdown but test it
+        lxc-stop -n lxccu  
+#2>&1 > /dev/null
+        echo -n "waiting for lxccu shutdown"
         timeout=30
         while [ $timeout -gt 0 ]
         do
-            echo "waiting for lxccu shutdown"
+            echo -n "."
             timeout=$(($timeout-1));sleep 1
             if lxc-info -n lxccu | grep -qs "STOPPED"
             then
                 timeout=0
             fi
         done
+        echo ""
         echo "lxccu shutdown complete"
     fi
     
@@ -40,7 +44,8 @@ backup_lxccu () {
     tar czf /opt/lxccu_backup.tar.gz usr/local
     cp /var/lib/lxc/lxccu/config /opt/lxccu_config_backup
 
-    lxc-destroy -n lxccu
+    cd /var/lib/lxc/
+    tar czf /opt/lxccu_prev_backup_`date +%s`.tar.gz lxccu/
 }
 
 case "$1" in
@@ -63,14 +68,21 @@ case "$1" in
 			echo "Bridge already exists"
 		else
             echo "Create bridge"
-		DEVICES=`cat /etc/network/interfaces | grep '^iface' | grep -v "default" | grep -v "lo" | cut -d' ' -f2 |  tr '\n' ' ' `
+		DEVICES=`cat /etc/network/interfaces | grep '^iface' | grep -v "default" | grep -v "lo" | cut -d' ' -f2`
+        DEVICES_LIST=`echo $DEVICES |  tr '\n' ' ' `
+
+        for dev in $DEVICES
+        do
+            sed -i "s/iface ${dev} inet dhcp/#iface ${dev} inet dhcp/g" /etc/network/interfaces
+        done
 		cat >> /etc/network/interfaces << EOF
 auto lxccubr0
 iface lxccubr0 inet dhcp
-  bridge_ports $DEVICES	
+  bridge_ports $DEVICES_LIST	
 EOF
 		ifup lxccubr0
         fi
+       
     ;;
 
     upgrade)

@@ -1,6 +1,6 @@
 diff -rupN fs_original/bin/mountSD fs/bin/mountSD
---- fs_original/bin/mountSD	2014-05-08 17:09:41.753798080 +0000
-+++ fs/bin/mountSD	2014-05-08 17:17:46.851464134 +0000
+--- fs_original/bin/mountSD	2014-05-21 00:28:38.725664742 +0200
++++ fs/bin/mountSD	2014-05-21 00:33:22.260252879 +0200
 @@ -1,10 +1,10 @@
  #!/bin/sh
  echo "Starte mountSD: $@" > /tmp/dudu
@@ -16,8 +16,8 @@ diff -rupN fs_original/bin/mountSD fs/bin/mountSD
 +# fi
  
 diff -rupN fs_original/bin/update_firmware_pre fs/bin/update_firmware_pre
---- fs_original/bin/update_firmware_pre	2014-05-08 17:09:41.883799545 +0000
-+++ fs/bin/update_firmware_pre	2014-05-08 17:20:02.762309854 +0000
+--- fs_original/bin/update_firmware_pre	2014-05-21 00:28:38.845678386 +0200
++++ fs/bin/update_firmware_pre	2014-05-21 00:33:22.270253669 +0200
 @@ -1,5 +1,5 @@
  #!/bin/sh
 -
@@ -114,8 +114,8 @@ diff -rupN fs_original/bin/update_firmware_pre fs/bin/update_firmware_pre
 +# pivot_root . oldroot
  
 diff -rupN fs_original/bin/update_firmware_run fs/bin/update_firmware_run
---- fs_original/bin/update_firmware_run	2014-05-08 17:09:41.883799545 +0000
-+++ fs/bin/update_firmware_run	2014-05-08 17:19:12.932167225 +0000
+--- fs_original/bin/update_firmware_run	2014-05-21 00:28:38.845678386 +0200
++++ fs/bin/update_firmware_run	2014-05-21 00:33:22.270253669 +0200
 @@ -1,36 +1,70 @@
  #!/bin/sh
  
@@ -219,14 +219,14 @@ diff -rupN fs_original/bin/update_firmware_run fs/bin/update_firmware_run
 +cd /var/
 +/var/update_script CCU2
 diff -rupN fs_original/etc/config_templates/ntpclient fs/etc/config_templates/ntpclient
---- fs_original/etc/config_templates/ntpclient	2014-05-08 17:09:43.203814258 +0000
-+++ fs/etc/config_templates/ntpclient	2014-05-08 17:17:46.861464256 +0000
+--- fs_original/etc/config_templates/ntpclient	2014-05-21 00:28:40.395854612 +0200
++++ fs/etc/config_templates/ntpclient	2014-05-21 00:33:22.280254459 +0200
 @@ -1 +1 @@
 -NTPSERVERS='ntp.homematic.com'
 +NTPSERVERS='0.de.pool.ntp.org'
 diff -rupN fs_original/etc/fstab fs/etc/fstab
---- fs_original/etc/fstab	2014-05-08 17:09:43.213814368 +0000
-+++ fs/etc/fstab	2014-05-08 17:17:46.871464378 +0000
+--- fs_original/etc/fstab	2014-05-21 00:28:40.415856886 +0200
++++ fs/etc/fstab	2014-05-21 00:33:22.280254459 +0200
 @@ -1,13 +1,3 @@
  # /etc/fstab: static file system information.
  #
@@ -241,9 +241,74 @@ diff -rupN fs_original/etc/fstab fs/etc/fstab
 -varfs           /var           tmpfs    defaults,size=196M 0      0
 -debugfs 	/sys/kernel/debug debugfs 		  0 	0
 -ubi1:user	/usr/local	ubifs	defaults,noatime,rw,sync	0 0
+diff -rupN fs_original/etc/init.d/_40UsbNetwork fs/etc/init.d/_40UsbNetwork
+--- fs_original/etc/init.d/_40UsbNetwork	1970-01-01 01:00:00.000000000 +0100
++++ fs/etc/init.d/_40UsbNetwork	2014-05-21 00:33:22.290255249 +0200
+@@ -0,0 +1,52 @@
++#!/bin/sh
++#
++# Starts Ethernet over USB
++#
++
++
++start() {
++	export TZ=`cat /etc/config/TZ`
++
++	echo -n "Starting network over usb: "
++		
++	if [ ! -f /etc/udhcpd.usb0.conf ]; then
++		echo "ERROR (file /etc/udhcp.usb0.conf not found)"
++	elif [ ! -f /etc/dnsd.conf ]; then
++		echo "ERROR (file /etc/dnsd.conf not found)"
++	else
++		ifconfig usb0 10.101.82.51 netmask 255.255.255.0
++		udhcpd -S /etc/udhcpd.usb0.conf
++		# disable DNS Server; CCU can only be access by ip address
++		#dnsd -d -c /etc/dnsd.conf -i 10.101.82.51
++		echo "OK"	
++	fi		
++}
++
++stop() {
++	echo -n "Stopping network over usb: "
++	killall udhcpd
++	killall dnsd	
++	echo "OK"
++}
++restart() {
++	stop
++	start
++}
++
++case "$1" in
++  start)
++	start
++	;;
++  stop)
++	stop
++	;;
++  restart|reload)
++	restart
++	;;
++  *)
++	echo "Usage: $0 {start|stop|restart}"
++	exit 1
++esac
++
++exit $?
++
+diff -rupN fs_original/etc/init.d/rcS fs/etc/init.d/rcS
+--- fs_original/etc/init.d/rcS	2014-05-21 00:28:40.265839833 +0200
++++ fs/etc/init.d/rcS	2014-05-21 00:33:22.300256039 +0200
+@@ -25,3 +25,4 @@ for i in /etc/init.d/S??* ;do
+     esac
+ done
+ 
++/bin/mountSD
+\ No newline at end of file
 diff -rupN fs_original/etc/init.d/S00eQ3SystemStart fs/etc/init.d/S00eQ3SystemStart
---- fs_original/etc/init.d/S00eQ3SystemStart	2014-05-08 17:09:43.153813706 +0000
-+++ fs/etc/init.d/S00eQ3SystemStart	2014-05-08 17:20:18.852322109 +0000
+--- fs_original/etc/init.d/S00eQ3SystemStart	2014-05-21 00:28:40.305844380 +0200
++++ fs/etc/init.d/S00eQ3SystemStart	2014-05-21 00:33:22.300256039 +0200
 @@ -4,104 +4,104 @@
  #
  
@@ -455,8 +520,8 @@ diff -rupN fs_original/etc/init.d/S00eQ3SystemStart fs/etc/init.d/S00eQ3SystemSt
  	exit 1
  esac
 diff -rupN fs_original/etc/init.d/S40UsbNetwork fs/etc/init.d/S40UsbNetwork
---- fs_original/etc/init.d/S40UsbNetwork	2014-05-08 17:09:43.143813596 +0000
-+++ fs/etc/init.d/S40UsbNetwork	1970-01-01 00:00:00.000000000 +0000
+--- fs_original/etc/init.d/S40UsbNetwork	2014-05-21 00:28:40.305844380 +0200
++++ fs/etc/init.d/S40UsbNetwork	1970-01-01 01:00:00.000000000 +0100
 @@ -1,52 +0,0 @@
 -#!/bin/sh
 -#
@@ -511,8 +576,8 @@ diff -rupN fs_original/etc/init.d/S40UsbNetwork fs/etc/init.d/S40UsbNetwork
 -exit $?
 -
 diff -rupN fs_original/etc/init.d/S50eq3configd fs/etc/init.d/S50eq3configd
---- fs_original/etc/init.d/S50eq3configd	2014-05-08 17:09:43.133813486 +0000
-+++ fs/etc/init.d/S50eq3configd	2014-05-08 17:17:46.891464622 +0000
+--- fs_original/etc/init.d/S50eq3configd	2014-05-21 00:28:40.265839833 +0200
++++ fs/etc/init.d/S50eq3configd	2014-05-21 00:33:22.320257619 +0200
 @@ -1,52 +1,52 @@
  #!/bin/sh
  #
@@ -595,8 +660,8 @@ diff -rupN fs_original/etc/init.d/S50eq3configd fs/etc/init.d/S50eq3configd
 +exit	$?
  
 diff -rupN fs_original/etc/init.d/S60rfd fs/etc/init.d/S60rfd
---- fs_original/etc/init.d/S60rfd	2014-05-08 17:09:43.153813706 +0000
-+++ fs/etc/init.d/S60rfd	2014-05-08 17:17:46.891464622 +0000
+--- fs_original/etc/init.d/S60rfd	2014-05-21 00:28:40.325846654 +0200
++++ fs/etc/init.d/S60rfd	2014-05-21 00:33:22.320257619 +0200
 @@ -25,31 +25,31 @@ init() {
  	export TZ=`cat /etc/config/TZ`
  
@@ -659,8 +724,8 @@ diff -rupN fs_original/etc/init.d/S60rfd fs/etc/init.d/S60rfd
  	exit 1
  esac
 diff -rupN fs_original/etc/init.d/S99eQ3SystemStarted fs/etc/init.d/S99eQ3SystemStarted
---- fs_original/etc/init.d/S99eQ3SystemStarted	2014-05-08 17:09:43.163813817 +0000
-+++ fs/etc/init.d/S99eQ3SystemStarted	2014-05-08 17:17:46.901464744 +0000
+--- fs_original/etc/init.d/S99eQ3SystemStarted	2014-05-21 00:28:40.325846654 +0200
++++ fs/etc/init.d/S99eQ3SystemStarted	2014-05-21 00:33:22.330258409 +0200
 @@ -4,32 +4,32 @@
  #
  
@@ -726,74 +791,9 @@ diff -rupN fs_original/etc/init.d/S99eQ3SystemStarted fs/etc/init.d/S99eQ3System
  	echo "Usage: $0 {start|stop|restart}"
  	exit 1
  esac
-diff -rupN fs_original/etc/init.d/_40UsbNetwork fs/etc/init.d/_40UsbNetwork
---- fs_original/etc/init.d/_40UsbNetwork	1970-01-01 00:00:00.000000000 +0000
-+++ fs/etc/init.d/_40UsbNetwork	2014-05-08 17:17:46.871464378 +0000
-@@ -0,0 +1,52 @@
-+#!/bin/sh
-+#
-+# Starts Ethernet over USB
-+#
-+
-+
-+start() {
-+	export TZ=`cat /etc/config/TZ`
-+
-+	echo -n "Starting network over usb: "
-+		
-+	if [ ! -f /etc/udhcpd.usb0.conf ]; then
-+		echo "ERROR (file /etc/udhcp.usb0.conf not found)"
-+	elif [ ! -f /etc/dnsd.conf ]; then
-+		echo "ERROR (file /etc/dnsd.conf not found)"
-+	else
-+		ifconfig usb0 10.101.82.51 netmask 255.255.255.0
-+		udhcpd -S /etc/udhcpd.usb0.conf
-+		# disable DNS Server; CCU can only be access by ip address
-+		#dnsd -d -c /etc/dnsd.conf -i 10.101.82.51
-+		echo "OK"	
-+	fi		
-+}
-+
-+stop() {
-+	echo -n "Stopping network over usb: "
-+	killall udhcpd
-+	killall dnsd	
-+	echo "OK"
-+}
-+restart() {
-+	stop
-+	start
-+}
-+
-+case "$1" in
-+  start)
-+	start
-+	;;
-+  stop)
-+	stop
-+	;;
-+  restart|reload)
-+	restart
-+	;;
-+  *)
-+	echo "Usage: $0 {start|stop|restart}"
-+	exit 1
-+esac
-+
-+exit $?
-+
-diff -rupN fs_original/etc/init.d/rcS fs/etc/init.d/rcS
---- fs_original/etc/init.d/rcS	2014-05-08 17:09:43.133813486 +0000
-+++ fs/etc/init.d/rcS	2014-05-08 17:17:46.871464378 +0000
-@@ -25,3 +25,4 @@ for i in /etc/init.d/S??* ;do
-     esac
- done
- 
-+/bin/mountSD
-\ No newline at end of file
 diff -rupN fs_original/etc/inittab fs/etc/inittab
---- fs_original/etc/inittab	2014-05-08 17:09:43.243814699 +0000
-+++ fs/etc/inittab	2014-05-08 17:40:42.737641911 +0000
+--- fs_original/etc/inittab	2014-05-21 00:28:40.475863707 +0200
++++ fs/etc/inittab	2014-05-21 00:33:22.340259199 +0200
 @@ -14,27 +14,31 @@
  # process   == program to run
  
@@ -833,8 +833,8 @@ diff -rupN fs_original/etc/inittab fs/etc/inittab
 +# create a console for lxc
 +tty1::respawn:/sbin/getty -L tty1 115200 linux
 diff -rupN fs_original/opt/mh/startup.sh fs/opt/mh/startup.sh
---- fs_original/opt/mh/startup.sh	2014-05-08 17:09:46.293847878 +0000
-+++ fs/opt/mh/startup.sh	2014-05-08 17:17:46.911464866 +0000
+--- fs_original/opt/mh/startup.sh	2014-05-21 00:28:45.876477466 +0200
++++ fs/opt/mh/startup.sh	2014-05-21 00:33:22.340259199 +0200
 @@ -19,9 +19,9 @@ if [ ! -e $USER_DIR ] ; then
  
  fi
@@ -849,8 +849,8 @@ diff -rupN fs_original/opt/mh/startup.sh fs/opt/mh/startup.sh
  
  l1=`ifconfig | grep 'eth0' | tr -s ' ' | cut -d ' ' -f5 | tr ':' '-'`
 diff -rupN fs_original/www/api/methods/bidcosrf/setconfiguration-rf.tcl fs/www/api/methods/bidcosrf/setconfiguration-rf.tcl
---- fs_original/www/api/methods/bidcosrf/setconfiguration-rf.tcl	2014-05-08 17:10:02.704007568 +0000
-+++ fs/www/api/methods/bidcosrf/setconfiguration-rf.tcl	2014-05-08 17:17:46.911464866 +0000
+--- fs_original/www/api/methods/bidcosrf/setconfiguration-rf.tcl	2014-05-21 00:29:22.000575589 +0200
++++ fs/www/api/methods/bidcosrf/setconfiguration-rf.tcl	2014-05-21 00:33:22.350259989 +0200
 @@ -20,32 +20,32 @@ set fd [open /etc/config/rfd.conf w]
  puts $fd "# This File was automatically generated"
  puts $fd "# TCP Port for XmlRpc connections"
@@ -898,8 +898,8 @@ diff -rupN fs_original/www/api/methods/bidcosrf/setconfiguration-rf.tcl fs/www/a
  #Lan Interfaces (RF)
  set i 1
 diff -rupN fs_original/www/config/control_panel.cgi fs/www/config/control_panel.cgi
---- fs_original/www/config/control_panel.cgi	2014-05-08 17:10:05.604032580 +0000
-+++ fs/www/config/control_panel.cgi	2014-05-08 17:17:46.921464988 +0000
+--- fs_original/www/config/control_panel.cgi	2014-05-21 00:29:27.361182685 +0200
++++ fs/www/config/control_panel.cgi	2014-05-21 00:33:22.360260779 +0200
 @@ -159,10 +159,10 @@ puts {
  
      <!-- Storage Settings -->
@@ -914,12 +914,22 @@ diff -rupN fs_original/www/config/control_panel.cgi fs/www/config/control_panel.
  
  	  </tr>
 diff -rupN fs_original/www/config/cp_maintenance.cgi fs/www/config/cp_maintenance.cgi
---- fs_original/www/config/cp_maintenance.cgi	2014-05-08 17:10:05.514031817 +0000
-+++ fs/www/config/cp_maintenance.cgi	2014-05-08 17:17:46.931465110 +0000
-@@ -327,82 +327,82 @@ proc action_put_page {} {
-                                 puts "$cur_version"
+--- fs_original/www/config/cp_maintenance.cgi	2014-05-21 00:29:27.301175890 +0200
++++ fs/www/config/cp_maintenance.cgi	2014-05-21 00:33:22.370261569 +0200
+@@ -318,91 +318,92 @@ proc action_put_page {} {
+                 table_data {class="CLASS20904"} {width="400"} {
+                     table {class="CLASS20909"} {
+                         set cur_version [get_version]
++                        set lxccu_version [read_var "/boot/LXCCUVERSION" VERSION]
+                         set serial [get_serial]
+                         table_row {
+                             table_data {align="left"} {colspan="2" id="actualSWVersion"} {
+                                 puts "\${dialogSettingsCMLblActualSoftwareVersion}"
                              }
-                         }
+                             table_data {
+-                                puts "$cur_version"
+-                            }
+-                        }
 -                        table_row {
 -                            table_data {align="left"} {colspan="2"} {
 -                                puts "\${dialogSettingsCMLblAvailableSoftwareVersion}"
@@ -994,8 +1004,9 @@ diff -rupN fs_original/www/config/cp_maintenance.cgi fs/www/config/cp_maintenanc
 -                            td {width="20"} {}
 -                            table_data {align="left"} {colspan="2"} {class="CLASS20920"} {
 -                                puts "\${dialogSettingsCMLblPerformSoftwareUpdateStep4}"
--                            }
--                        }
++                                puts "$cur_version - LXCCU: $lxccu_version"
+                             }
+                         }
 +                        # table_row {
 +                        #     table_data {align="left"} {colspan="2"} {
 +                        #         puts "\${dialogSettingsCMLblAvailableSoftwareVersion}"
@@ -1076,8 +1087,89 @@ diff -rupN fs_original/www/config/cp_maintenance.cgi fs/www/config/cp_maintenanc
                  }
                  table_data {align="left"} {class="CLASS20921"} {
 diff -rupN fs_original/www/config/cp_security.cgi fs/www/config/cp_security.cgi
---- fs_original/www/config/cp_security.cgi	2014-05-08 17:10:05.584032411 +0000
-+++ fs/www/config/cp_security.cgi	2014-05-08 17:17:46.931465110 +0000
+--- fs_original/www/config/cp_security.cgi	2014-05-21 00:29:27.351181552 +0200
++++ fs/www/config/cp_security.cgi	2014-05-21 00:34:43.706845215 +0200
+@@ -41,30 +41,30 @@ proc get_current_key_index {} {
+   if { [info exists keys($CURRENT_INDEX)] } then {
+     set currentIndex $keys($CURRENT_INDEX)
+   }
+-  
++
+   return $currentIndex
+ }
+ 
+ proc set_key { key } {
+   global RFD_URL
+-  
++
+   xmlrpc $RFD_URL changeKey $key
+-  
++
+   # set always new key with crypttool
+   set index [get_current_key_index]
+   incr index 1
+-    
++
+   set fd [open "|crypttool -S -k $key -i $index" r]
+   close $fd
+ }
+ 
+ proc action_change_key {} {
+     global env RFD_URL
+-    
++
+     http_head
+     import key1
+-    import key2    
+-    
++    import key2
++
+     if { "$key1" != "$key2" } {
+         #put_message "\${dialogSettingsSecurityMessageErrorSecKeyTitle}" "Die beiden eingegebenen Schl&uuml;ssel stimmen nicht &uuml;berein." {\${dialogBack} "showSecurityCP();"}
+         put_message "\${dialogSettingsSecurityMessageErrorSecKeyTitle}" "\${dialogSettingsSecurityMessageErrorSecKeyContentKeysNotIdentical}" {\${dialogBack} "showSecurityCP();"}
+@@ -75,13 +75,13 @@ proc action_change_key {} {
+         put_message "\${dialogSettingsSecurityMessageErrorSecKeyTitle}" \${dialogSettingsSecurityMessageErrorSecKeyContentKeyShort} {\${dialogBack} "showSecurityCP();"}
+         return
+     }
+-		
++
+ 		if { 0 == [regexp {^[0-9a-zA-Z_]+$} $key1 dummy] } {
+         #put_message "Sicherheitsschl&uuml;ssel setzen - Fehler" "Der eingegebene Schl&uuml;ssel darf keine Sonderzeichen enthalten. Erlaubt sind lediglich die Buchstaben A bis Z, die Ziffern 0 bis 9 sowie der Unterstrich." {"Zur&uuml;ck" "showSecurityCP();"}
+         put_message "\${dialogSettingsSecurityMessageErrorSecKeyTitle}" \${dialogSettingsSecurityMessageErrorSecKeyContentIllegalChar} {\${dialogBack} "showSecurityCP();"}
+         return
+ 		}
+-		
++
+     # check the entered key against our current system key
+     if { ![catch {exec crypttool -v -t 3 -k "$key1"}]} {
+ 
+@@ -90,7 +90,7 @@ proc action_change_key {} {
+         put_message "\${dialogSettingsSecurityMessageHintSecKeyTitle}" \${dialogSettingsSecurityMessageErrorSecKeyContentKeysIsIdentical} {\${dialogBack} "showSecurityCP();"}
+         return
+     }
+-    
++
+     if { [catch {set_key $key1}] } {
+         # "Der Schlüssel konnte nicht gesetzt werden. Das liegt vermutlich daran, daß "
+         # "der aktuelle Schlü;ssel noch nicht an alle Komponenten übertragen wurde. "
+@@ -103,7 +103,7 @@ proc action_change_key {} {
+ 
+ proc action_factory_reset_check {} {
+    global env
+-   
++
+     http_head
+     division {class="popupTitle"} {
+         puts "\${dialogSettingsSecurityMessagePerformSystemResetTitle}"
+@@ -136,7 +136,7 @@ proc action_factory_reset_check {} {
+                                     cgi_put "<input type=hidden name=\"key\" value=dummy id=\"text_key\"/>"
+                                 }
+                             }
+-                        }                        
++                        }
+                         table_row {
+                             table_data {align="right"} {class="CLASS20812"} {colspan="3"} {
+                                 division {class="popupControls CLASS20811"} {
 @@ -196,12 +196,13 @@ proc action_factory_reset_go {} {
      }
      if { [catch {
@@ -1098,9 +1190,101 @@ diff -rupN fs_original/www/config/cp_security.cgi fs/www/config/cp_security.cgi
          exec touch /var/doFactoryReset
          exec kill -SIGQUIT 1
      }]} {
-@@ -474,12 +475,13 @@ proc action_backup_restore_go {} {
+@@ -279,27 +280,27 @@ proc action_factory_reset_go {} {
+ proc action_backup_restore_check {} {
+     global env
+     cd /tmp/
+-    
++
+     http_head
+     set i 0
+     if { [catch {
+         exec tar xf new_config.tar
+         file delete -force /tmp/new_config.tar
+-		
++
+     set config_version [read_version "firmware_version"]
+ 		set ccu1_backup false
+ 		if { [version_compare $config_version 2.0.0] < 0 } {
+-			set ccu1_backup true		
++			set ccu1_backup true
+ 		}
+-		
++
+         set system_has_user_key [catch {exec crypttool -v -t 0}]
+         set stored_signature [exec cat signature]
+         set calculated_signature [exec crypttool -s -t 0 <usr_local.tar.gz]
+-		if { "false" == $ccu1_backup } {				
++		if { "false" == $ccu1_backup } {
+ 			set config_has_user_key [expr {"$stored_signature" != "$calculated_signature"} ]
+ 		} else {	#CCU1 used an other default key. So we can´t check with crypttool.
+ 			set config_has_user_key [exec cat key_index]
+-		}		
++		}
+     } errorMessage] } {
+         # "Die ausgewählte Datei enthält kein HomeMatic Systembackup. "
+         # "Bitte wählen Sie eine gültige Backup-Datei aus."
+@@ -361,7 +362,7 @@ proc action_backup_restore_check {} {
+                                     cgi_put "<input type=hidden name=\"key\" value=dummy id=\"text_key\"/>"
+                                 }
+                             }
+-                        }                        
++                        }
+                         table_row {
+                             table_data {align="right"} {class="CLASS20812"} {colspan="3"} {
+                                 division {class="popupControls CLASS20811"} {
+@@ -415,7 +416,7 @@ proc action_backup_restore_go {} {
+     global env
+     cd /tmp/
+     http_head
+-    
++
+     set system_version [read_version "/boot/VERSION"]
+     set config_version [read_version "firmware_version"]
+ 	set ccu1_backup false
+@@ -427,10 +428,10 @@ proc action_backup_restore_go {} {
+             } {"OK" }
      }
- 		
+   }
+-	
++
+     set system_has_user_key [catch {exec crypttool -v -t 0}]
+     set stored_signature [exec cat signature]
+-	if { "false" == $ccu1_backup } {	
++	if { "false" == $ccu1_backup } {
+ 		set config_has_user_key [expr {"$stored_signature" != "[exec crypttool -s -t 0 <usr_local.tar.gz]"} ]
+ 	} else {	#CCU1 used an other default key. So we can´t check with crypttool.
+ 		set config_has_user_key [exec cat key_index]
+@@ -451,7 +452,7 @@ proc action_backup_restore_go {} {
+             return
+         }
+     }
+-    
++
+     if { [version_compare $config_version $system_version] > 0 } {
+         # set msg "Das Einspielen des Backups ist nicht m&ouml;glich. Das vorliegende Backup basiert auf der Zentralen-Firmware $config_version.<br>\n"
+         # append msg "Diese Firmware ist aktueller, als die derzeit auf der Zentrale installierte Version ($system_version).<br>\n"
+@@ -460,26 +461,27 @@ proc action_backup_restore_go {} {
+         put_message "\${dialogSettingsSecurityMessageSysBackupFWUpdateNecessaryTitle}" "\${dialogSettingsSecurityMessageSysBackupFWUpdateNecessaryContentA} $config_version \${dialogSettingsSecurityMessageSysBackupFWUpdateNecessaryContentB} ($system_version) \${dialogSettingsSecurityMessageSysBackupFWUpdateNecessaryContentC}"
+         return
+     }
+-    
++
+     #get key index
+     set stored_index [exec cat key_index]
+-    if { !$system_has_user_key && $config_has_user_key } {        
++    if { !$system_has_user_key && $config_has_user_key } {
+         exec crypttool -S -i $stored_index -k "$key"
+     }
+-    
++
+     cd /
+     catch {
+         exec run-parts -a stop /etc/config/rc.d
+ 	exec killall crond
+     }
+-		
++
  	if { "false" == $ccu1_backup } {	# backup for version >= 2
 -		exec umount /usr/local
 -        	exec /usr/sbin/ubidetach -p /dev/mtd6
@@ -1118,9 +1302,95 @@ diff -rupN fs_original/www/config/cp_security.cgi fs/www/config/cp_security.cgi
  
  		if { [catch {exec tar xzf /tmp/usr_local.tar.gz} errorMessage] } {
  			# set msg "Beim Einspielen des Systembackups ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut. "
-@@ -566,8 +568,8 @@ proc action_backup_restore_go {} {
+@@ -489,16 +491,16 @@ proc action_backup_restore_go {} {
+ 			set backuperror true
+ 		} else {
+ 			set backuperror false
+-		}		
+-	} else {	# backup for version < 2			
++		}
++	} else {	# backup for version < 2
+ 		#delete existing files
+ 		file delete -force /tmp/backup
+-		file delete -force /etc/config/hs485d /etc/config/hs485types /etc/config/rfd /etc/config/userprofiles 
++		file delete -force /etc/config/hs485d /etc/config/hs485types /etc/config/rfd /etc/config/userprofiles
+ 		file delete -force /etc/config/homematic.regadom /etc/config/homematic.regadom.bak
+-		file delete -force /etc/config/ids /etc/config/ntpclient /etc/config/rega.conf /etc/config/syslog 
++		file delete -force /etc/config/ids /etc/config/ntpclient /etc/config/rega.conf /etc/config/syslog
+ 		file delete -force /etc/config/tweaks /etc/config/TZ /etc/config/server.pem /etc/config/keys
+ 		file delete -force /etc/config/time.conf
+-		
++
+ 		file mkdir /tmp/backup
+ 		cd /tmp/backup
+ 		if { [catch {exec tar xzf /tmp/usr_local.tar.gz} errorMessage] } {
+@@ -509,8 +511,8 @@ proc action_backup_restore_go {} {
+ 			if { [file exists /tmp/backup/usr/local/etc/config] } {
+ 				cd /tmp/backup/usr/local/etc/config
+ 			}
+-			
+-			if { [file exists hs485d] } { file copy hs485d /etc/config/hs485d }				
++
++			if { [file exists hs485d] } { file copy hs485d /etc/config/hs485d }
+ 			if { [file exists hs485types] } { file copy hs485types /etc/config/hs485types }
+ 			if { [file exists rfd] } { file copy rfd /etc/config/rfd }
+ 			if { [file exists userprofiles] } { file copy userprofiles /etc/config/userprofiles }
+@@ -522,12 +524,12 @@ proc action_backup_restore_go {} {
+ 			if { [file exists syslog] } { file copy syslog /etc/config/syslog }
+ 			if { [file exists tweaks] } { file copy tweaks /etc/config/tweaks }
+ 			if { [file exists TZ] } { file copy TZ /etc/config/TZ }
+-			if { [file exists server.pem] } { file copy server.pem /etc/config/server.pem }			
++			if { [file exists server.pem] } { file copy server.pem /etc/config/server.pem }
+ 			if { [file exists time.conf] } { file copy time.conf /etc/config/time.conf }
+ 			if { [file exists keys] } then {
+ 				file copy keys /etc/config/keys
+ 			} else {
+-				if { $config_has_user_key } then {          
++				if { $config_has_user_key } then {
+ 					set fd [open "/etc/config/crypttool.cfg" r]
+ 					set content [read $fd]
+ 					close $fd
+@@ -537,16 +539,16 @@ proc action_backup_restore_go {} {
+ 						if { [regexp {([0-9]+) (.*)} $line dummy key value] } then {
+ 							set key [string trim $key]
+ 							set value [string trim $value]
+-							set keys($key) $value						
++							set keys($key) $value
+ 						}
+ 					}
+-          					
++
+ 					if { [info exists keys($stored_index)] } then {
+-						set keyvalue $keys($stored_index)							
++						set keyvalue $keys($stored_index)
+ 						set fd -1
+-            
++
+ 						catch {set fd [open "/etc/config/keys" w]}
+-            
++
+ 						if { $fd > 0 } {
+ 								puts $fd "Current Index = $stored_index"
+ 								puts $fd "Key 0 ="
+@@ -554,20 +556,20 @@ proc action_backup_restore_go {} {
+ 								puts $fd "Last Index = 0"
+ 								close $fd
+ 						}
+-					}          
+-				}				
++					}
++				}
+ 			}
+ 
+ 			catch {exec eq3configcmd rfd-interface-copy rfd.conf /etc/config/rfd.conf}
+ 
+ 			set backuperror false
+-		}					
++		}
+ 		cd /
  	}
- 	
+-	
++
  	if { "false" == $backuperror } {
 -        exec mount -o remount,ro /usr/local
 -        exec mount -o remount,rw /usr/local
@@ -1129,9 +1399,129 @@ diff -rupN fs_original/www/config/cp_security.cgi fs/www/config/cp_security.cgi
          division {class="popupTitle"} {
              puts "\${dialogSettingsSecurityMessageSysBackupRestartSystemTitle}"
          }
+@@ -646,16 +648,16 @@ proc action_set_session_timeout {} {
+   set REGA_CONF_FILE "/etc/config/rega.conf"
+ 
+   http_head
+-  
++
+   if { [catch {
+     import timeout
+     if { $timeout != [expr int($timeout)] || 180 > $timeout || 600 < $timeout } then { error "invalid timeout" }
+-    
++
+     set    rega_conf "# rega.conf\n"
+     append rega_conf "# This file is generated by cp_security.cgi\n"
+     append rega_conf "SessionTimeout=$timeout\n"
+     saveToFile $REGA_CONF_FILE rega_conf
+-    
++
+ 
+     # Die neue Zeit bis zum Ablauf der Sitzung wurde erfolgreich &uuml;bernommen.
+     # Die &Auml;nderung wird mit dem n&auml;chsten Start der HomeMatic Zentrale wirksam.
+@@ -664,7 +666,7 @@ proc action_set_session_timeout {} {
+         ${dialogSettingsSecurityMessageSessionTimeOutSaveContent}
+       </p>
+     }
+-    
++
+   }]} then {
+     # Fehler: Session Timeout &uuml;bernehmen
+     # Bitte w&auml;hlen Sie eine Zeit zwischen 180 und 600 Sekunden.
+@@ -808,38 +810,40 @@ proc action_put_page {} {
+                     }
+                 }
+             }
+-            table_row {class="CLASS20806"} {
+-                table_data {class="CLASS20807"} {
+-                    puts "\${dialogSettingsSecurityTDSysReset}"
+-                }
+-                table_data {class="CLASS20808"} {
+-                    table {class="CLASS20810"} {width="100%"} {
+-                        table_row {
+-                            table_data {align="left"} {colspan="2"} {
+-                                puts "\${dialogSettingsSecurityLblSysResetPerform}"
+-                            }
+-                            table_data {align="right"} {
+-                                division {class="popupControls CLASS20811"} {
+-                                    division {class="CLASS20818 colorGradient50px"} {onClick="OnFactoryReset()"} {
+-                                        puts "\${dialogSettingsSecurityBtnSysReset}"
+-                                    }
+-                                }
+-                            }
+-                        }
+-                    }
+-                }
+-                table_data {align="left"} {class="CLASS20816"} {
+-                    puts "\${dialogSettingsSecurityHintSysReset1}"
+-                    br
+-                    #puts "Die Zentrale wird in den Werkszustand zur&uuml;ckgesetzt. Alle angelernten Ger&auml;te und"
+-                    #puts "alle erstellten Programme werden gel&ouml;scht"
+-                    puts "\${dialogSettingsSecurityHintSysReset2}"
+-                    br
+-                    #puts "Alle Ger&auml;tekonfigurationen und alle mit &quot;Direkte Verkn&uuml;pfungen&quot; angelegten"
+-                    #puts "Ger&auml;teverkn&uuml;pfungen bleiben bestehen und sind funktionsf&auml;hig."
+-                    puts "\${dialogSettingsSecurityHintSysReset3}"
+-                }
+-            }
++# begin: don't need because know you use dpkg-reconfigure lxccu
++#            table_row {class="CLASS20806"} {
++#                table_data {class="CLASS20807"} {
++#                    puts "\${dialogSettingsSecurityTDSysReset}"
++#                }
++#                table_data {class="CLASS20808"} {
++#                    table {class="CLASS20810"} {width="100%"} {
++#                        table_row {
++#                            table_data {align="left"} {colspan="2"} {
++#                                puts "\${dialogSettingsSecurityLblSysResetPerform}"
++#                            }
++#                            table_data {align="right"} {
++#                                division {class="popupControls CLASS20811"} {
++#                                    division {class="CLASS20818 colorGradient50px"} {onClick="OnFactoryReset()"} {
++#                                        puts "\${dialogSettingsSecurityBtnSysReset}"
++#                                    }
++#                                }
++#                            }
++#                        }
++#                    }
++#                }
++#                table_data {align="left"} {class="CLASS20816"} {
++#                    puts "\${dialogSettingsSecurityHintSysReset1}"
++#                    br
++#                    #puts "Die Zentrale wird in den Werkszustand zur&uuml;ckgesetzt. Alle angelernten Ger&auml;te und"
++#                    #puts "alle erstellten Programme werden gel&ouml;scht"
++#                    puts "\${dialogSettingsSecurityHintSysReset2}"
++#                    br
++#                    #puts "Alle Ger&auml;tekonfigurationen und alle mit &quot;Direkte Verkn&uuml;pfungen&quot; angelegten"
++#                    #puts "Ger&auml;teverkn&uuml;pfungen bleiben bestehen und sind funktionsf&auml;hig."
++#                    puts "\${dialogSettingsSecurityHintSysReset3}"
++#                }
++#            }
++# end
+           table_row {class="CLASS20806"} {
+             table_data {class="CLASS20807"} {
+               puts "\${dialogSettingsSecurityTDSessionTimeout}"
+@@ -965,7 +969,7 @@ proc action_put_page {} {
+                 //ProgressBar = new ProgressBarMsgBox("Systembackup wird übertragen...", 1);
+                 //ProgressBar.show();
+                 //ProgressBar.StartKnightRiderLight();
+-            
++
+                 document.backup_form.submit();
+             };
+             OnSetSessionTimeout = function() {
+@@ -1078,7 +1082,7 @@ proc action_create_backup {} {
+ proc action_backup_upload {} {
+     global env sid
+     cd /tmp/
+-    
++
+     http_head
+     import_file -client backup_file
+     file rename -force -- [lindex $backup_file 0] "/tmp/new_config.tar"
 diff -rupN fs_original/www/config/cp_software.cgi fs/www/config/cp_software.cgi
---- fs_original/www/config/cp_software.cgi	2014-05-08 17:10:05.434031139 +0000
-+++ fs/www/config/cp_software.cgi	2014-05-08 17:41:19.106305923 +0000
+--- fs_original/www/config/cp_software.cgi	2014-05-21 00:29:27.231167964 +0200
++++ fs/www/config/cp_software.cgi	2014-05-21 00:33:22.390263148 +0200
 @@ -507,7 +507,8 @@ proc action_install_start {} {
      if {[isOldCCU]} {
          exec /sbin/init -q

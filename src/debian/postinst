@@ -29,6 +29,13 @@ bridgename=""
 case "$1" in
     configure)
 		LXCCU_VERSION=$2
+		if [ -f /tmp/lxccu_version ]; then
+			TMP=`cat /tmp/lxccu_version`
+			if [ -n "$TMP" ]; then
+				LXCCU_VERSION=$TMP
+			fi
+			rm /tmp/lxccu_version
+		fi 
 
 		if [ -f /opt/lxccu_backup.tar.gz ]; then
 			UPGRADE=1
@@ -125,7 +132,7 @@ lxc.mount.entry = /media/sd-lxccu  media/sd-mmcblk0/ none defaults,bind 0 0
 
 lxc.tty = 1
 lxc.pts = 1
-lxc.cgroup.devices.deny = a
+lxc.cgroup.devices.allow = a
 
 # /dev/null and zero
 lxc.cgroup.devices.allow = c 1:3 rwm
@@ -161,19 +168,38 @@ lxc.network.hwaddr = 4a:49:43:49:79:${lastoctet_macaddress}
 lxc.rootfs = ${LXCCU_ROOT}root
 EOF
 		
+		# @TODO bugfix 1.4 -> 1.5
+		echo "VERSION=${EQ3_FW_VERSION}" > "${LXCCU_ROOTFS}/boot/VERSION"
 		#update version number
 		echo "VERSION=${LXCCU_VERSION}" > "${LXCCU_ROOTFS}/boot/LXCCUVERSION"
 
         # autostart
  		# add container
 		echo "create lxc container lxccu"
-		touch "${LXCCU_ROOT}autostart"
-        ln -s "${LXCCU_ROOT}config" "$LXC_AUTOSTART"
+		touch "${LXCCU_ROOT}autostart" > /dev/null 2>&1
+        ln -s "${LXCCU_ROOT}config" "$LXC_AUTOSTART" > /dev/null 2>&1
 
         lxc-start -n "$CONTAINER_NAME" -d
 
+       	echo "*********************************************"
+       	echo "*"
+       	echo "* Thanks ..."
+       	echo "*"
+       	echo "* Franz Hubert"
+       	echo "* Homoran"
+       	echo "*"
+       	echo "* for your donation!"
+       	echo "*"
+       	echo "*"
+       	echo "* Donation information at http://www.lxccu.com"
+       	echo "*"
+       	echo "*********************************************"
+       	echo ""
+       	sleep 3
         echo "using bridge: ${bridgename}"
         echo "mac address: 4a:49:43:49:79:${lastoctet_macaddress}"
+        echo ""
+        echo "To get information about your lxccu try the 'lxccuinfo' command"
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

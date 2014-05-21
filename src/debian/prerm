@@ -19,15 +19,22 @@ set -e
 . /var/lib/lxccu/source/lxccuhelper
 
 case "$1" in
-    remove|deconfigure)
+    remove)
+        remove_lxccu
+        rm -rf /var/lib/ubi_reader
+    ;;
+    deconfigure)
         remove_lxccu
     ;;
     upgrade)
         # stop container
         # lxc-config <- mac address
         # usr/local
+        rm -rf /var/lib/ubi_reader
+        echo "$2" > /tmp/lxccu_version
 	;;
     failed-upgrade)
+        #@ TODO restore previous backup
     ;;
 
     *)

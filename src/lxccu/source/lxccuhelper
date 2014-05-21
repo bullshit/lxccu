@@ -19,20 +19,25 @@ QUIET="--quiet"
 stop_lxccu() {
     CONTAINER_EXITS=$(lxc-list | grep -E "^ *$CONTAINER_NAME\$" | wc -l)
     if [ $CONTAINER_EXITS -ne 0 ]; then
-        if lxc-info -n "$CONTAINER_NAME" | grep -qs "STOPPED"
+        if lxc-info -n "$CONTAINER_NAME" | grep -qs "RUNNING"
         then
-            echo "shutdown lxccu"
-            lxc-shutdown -n "$CONTAINER_NAME"
+            echo "shutdown $CONTAINER_NAME"
+            # @TODO when there is a rootfs symlink -> change to shutdown but test it
+            lxc-stop -n "$CONTAINER_NAME"  
+    #2>&1 > /dev/null
+            echo -n "waiting for $CONTAINER_NAME shutdown"
             timeout=30
             while [ $timeout -gt 0 ]
             do
+                echo -n "."
                 timeout=$(($timeout-1));sleep 1
-                echo "waiting for lxccu shutdown"
-                if lxc-info -n "$CONTAINER_NAME" | grep -qs "STOPPED"
+                if lxc-info -n "$CONTAINER_NAME"| grep -qs "STOPPED"
                 then
                     timeout=0
                 fi
             done
+            echo ""
+            echo "$CONTAINER_NAME shutdown complete"
         fi
     fi	
 }
@@ -42,7 +47,6 @@ remove_lxccu () {
 	
     CONTAINER_EXITS=$(lxc-list | grep -E "^ *$CONTAINER_NAME\$" | wc -l)
     if [ $CONTAINER_EXITS -ne 0 ]; then
-        echo "lxccu shutdown complete"
         lxc-destroy -n "$CONTAINER_NAME"
     fi
     echo "remove files"
@@ -52,6 +56,7 @@ remove_lxccu () {
     if [ -d "$LXCCU_ROOT" ]; then
         rm -rf $LXCCU_ROOT
     fi
+
 }
 
 restore_lxccu_backup () {
