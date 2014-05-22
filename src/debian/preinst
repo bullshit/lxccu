@@ -58,12 +58,23 @@ case "$1" in
             fi
             mount -a
         fi
+
+        # @TODO check lxc loaded issue #12
         
         count=$(brctl show | awk 'NR % 2 == 0' | awk '{print $1}' | wc -l)
         if [ $count -gt 0 ]; then
+            if [ $count -eq 1 ]; then
+                echo "$count -eq 1"
+                DEVICES=`grep '^ *bridge_ports' /etc/network/interfaces | cut -d' ' -f4-10 `
+                for dev in $DEVICES
+                do
+                    sed -i "s/^iface ${dev} inet /#iface ${dev} inet /g" /etc/network/interfaces
+                done
+            fi
             exit 0
         fi
 
+        # TODO remove it 
 		if  ip addr show lxccubr0 > /dev/null 2>&1 ; then
 			echo "Bridge already exists"
 		else
@@ -73,7 +84,7 @@ case "$1" in
 
         for dev in $DEVICES
         do
-            sed -i "s/iface ${dev} inet dhcp/#iface ${dev} inet dhcp/g" /etc/network/interfaces
+            sed -i "s/^iface ${dev} inet dhcp/#iface ${dev} inet dhcp/g" /etc/network/interfaces
         done
 		cat >> /etc/network/interfaces << EOF
 auto lxccubr0
