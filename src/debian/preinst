@@ -79,6 +79,8 @@ case "$1" in
 			echo "Bridge already exists"
 		else
             echo "Create bridge"
+
+        # @TODO v1.5 check if static ip.
 		DEVICES=`cat /etc/network/interfaces | grep '^iface' | grep -v "default" | grep -v "lo" | cut -d' ' -f2`
         DEVICES_LIST=`echo $DEVICES |  tr '\n' ' ' `
 
