@@ -17,7 +17,8 @@ QUIET="--quiet"
 
 
 stop_lxccu() {
-    CONTAINER_EXITS=$(lxc-list | grep -E "^ *$CONTAINER_NAME\$" | wc -l)
+
+    CONTAINER_EXITS=$(lxc-ls | grep $CONTAINER_NAME | wc -l)
     if [ $CONTAINER_EXITS -ne 0 ]; then
         if lxc-info -n "$CONTAINER_NAME" | grep -qs "RUNNING"
         then
@@ -45,7 +46,7 @@ stop_lxccu() {
 remove_lxccu () {
 	stop_lxccu
 	
-    CONTAINER_EXITS=$(lxc-list | grep -E "^ *$CONTAINER_NAME\$" | wc -l)
+    CONTAINER_EXITS=$(lxc-ls | grep $CONTAINER_NAME | wc -l)
     if [ $CONTAINER_EXITS -ne 0 ]; then
         lxc-destroy -n "$CONTAINER_NAME"
     fi
