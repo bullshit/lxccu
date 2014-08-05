@@ -29,13 +29,14 @@ bridgename=""
 case "$1" in
     configure)
 		LXCCU_VERSION=$2
+		# @TODO make it better 
 		if [ -f /tmp/lxccu_version ]; then
 			TMP=`cat /tmp/lxccu_version`
 			echo "TMP: $TMP"
 			if [ -n "$TMP" ]; then
 				LXCCU_VERSION=$TMP
 			fi
-			#rm /tmp/lxccu_version
+			rm /tmp/lxccu_version
 		fi 
 
 		if [ -f /opt/lxccu_backup.tar.gz ]; then
@@ -188,6 +189,10 @@ EOF
        	echo "*"
        	echo "* Thanks ..."
        	echo "*"
+        echo "* Peter G."
+       	echo "* Markus F."
+       	echo "* Michael H."
+       	echo "* Ulrich W."
        	echo "* Sixpack"
        	echo "* André"
        	echo "* Pustekuchen"
