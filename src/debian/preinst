@@ -64,7 +64,6 @@ case "$1" in
         count=$(brctl show | awk 'NR % 2 == 0' | awk '{print $1}' | wc -l)
         if [ $count -gt 0 ]; then
             if [ $count -eq 1 ]; then
-                echo "$count -eq 1"
                 DEVICES=`grep '^ *bridge_ports' /etc/network/interfaces | cut -d' ' -f4-10 `
                 for dev in $DEVICES
                 do

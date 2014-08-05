@@ -1,6 +1,6 @@
 #!/bin/bash
 
-EQ3_FW_VERSION="2.7.17"
+EQ3_FW_VERSION="2.9.12"
 
 
 ROOT_PATH="/var/lib/lxccu/"
