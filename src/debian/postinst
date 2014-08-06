@@ -28,16 +28,8 @@ bridgename=""
 
 case "$1" in
     configure)
-		LXCCU_VERSION=$2
-		# @TODO make it better 
-		if [ -f /tmp/lxccu_version ]; then
-			TMP=`cat /tmp/lxccu_version`
-			echo "TMP: $TMP"
-			if [ -n "$TMP" ]; then
-				LXCCU_VERSION=$TMP
-			fi
-			rm /tmp/lxccu_version
-		fi 
+		LXCCU_VERSION=$(zcat /usr/share/doc/$DPKG_MAINTSCRIPT_PACKAGE/changelog.Debian.gz | \
+  head -1 | perl -ne '$_=~ /.*\((.*)\).*/; print $1;')
 
 		if [ -f /opt/lxccu_backup.tar.gz ]; then
 			UPGRADE=1
