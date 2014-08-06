@@ -65,6 +65,9 @@ case "$1" in
 		LOG=`mktemp`
 		/var/lib/ubi_reader/ubi_extract_files.py -q -k -o $LXCCU_ROOT /opt/rootfs.ubi
 
+		# most lxc commands use rootfs folder and not the config option
+		mv $LXCCU_ROOT/root $LXCCU_ROOTFS
+
 		# clean up download sources
 		echo "Remove downloaded files"
 		rm -f $EQ3_FW
@@ -161,7 +164,7 @@ lxc.network.type = veth
 lxc.network.flags = up
 lxc.network.link = ${bridgename}
 lxc.network.hwaddr = 4a:49:43:49:79:${lastoctet_macaddress}
-lxc.rootfs = ${LXCCU_ROOT}root
+lxc.rootfs = ${LXCCU_ROOTFS}
 EOF
 		
 		# @TODO bugfix 1.4 -> 1.5
