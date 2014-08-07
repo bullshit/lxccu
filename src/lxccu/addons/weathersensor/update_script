@@ -1,18 +1,21 @@
 #!/bin/sh
 
 ### Prepare filesystem
-mountPath="/mnt-root"
-mkdir -p $mountPath
-
-if ["$1" == ""]; then
-	echo "CCU1"
-	mount -t yaffs /dev/mtdblock2 $mountPath
-	lcdtool "Installing new device"
-	lcdtool -a 0x40 -t bin 00
-else
-	echo "CCU2"
-	mount -t ubifs ubi0:root $mountPath
-fi
+# oho changed
+mountPath="/var/lib/lxc/lxccu/rootfs" #mountPath="/mnt-root"
+# OHO not needed
+# mkdir -p $mountPath
+#
+#
+# if ["$1" == ""]; then
+# 	echo "CCU1"
+# 	mount -t yaffs /dev/mtdblock2 $mountPath
+# 	lcdtool "Installing new device"
+# 	lcdtool -a 0x40 -t bin 00
+# else
+# 	echo "CCU2"
+# 	mount -t ubifs ubi0:root $mountPath
+# fi
 
 ###########################
 ### New device UWS-THPL ###
@@ -64,15 +67,16 @@ if [ -z $webuiModifyed ]; then
 	sed -i "s/\($webuiSearch\)/\1$webuiInsert/g" $webuiFile
 fi
 
-umount $mountPath
-if ["$1" == ""]; then
-	echo "CCU1"
-	lcdtool "Reboot...             "
-	lcdtool -a 0x40 -t bin 00
-	echo "x" > /dev/watchdog
-	reboot
-	while true ; do true ;  done
-else
-	echo "CCU2"
-	# CCU2 always reboot after Addon/Firmware Update
-fi
+# OHO not needed
+# umount $mountPath
+# if ["$1" == ""]; then
+# 	echo "CCU1"
+# 	lcdtool "Reboot...             "
+# 	lcdtool -a 0x40 -t bin 00
+# 	echo "x" > /dev/watchdog
+# 	reboot
+# 	while true ; do true ;  done
+# else
+# 	echo "CCU2"
+# 	# CCU2 always reboot after Addon/Firmware Update
+# fi
