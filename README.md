@@ -9,11 +9,13 @@
 
 #### raspbian / raspbian-ua-netinst
 
-install lxc enabled kernel
+install the latest kernel with rpi-update
 ```
-apt-get update && apt-get install linux-image-rpi-rpfv lsb-release
-cp /boot/kernel.img /boot/kernel.img.orig
-cp /vmlinuz /boot/kernel.img
+#optional
+apt-get install rpi-update
+```
+```
+rpi-update
 reboot
 ```
 
