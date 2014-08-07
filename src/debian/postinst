@@ -172,6 +172,15 @@ EOF
 		#update version number
 		echo "VERSION=${LXCCU_VERSION}" > "${LXCCU_ROOTFS}/boot/LXCCUVERSION"
 
+		# addon installation
+		echo "addon installation"
+		addonPath="/var/lib/lxccu/addons"
+		for addonDir in `ls $addonPath`; do
+			cd "${addonPath}/$addonDir"
+			echo "install '$addonDir' addon"
+			./update_script
+		done
+
         # autostart
  		# add container
 		echo "start lxc container lxccu"
