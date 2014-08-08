@@ -5,7 +5,7 @@ EQ3_FW_VERSION="2.9.12"
 
 ROOT_PATH="/var/lib/lxccu/"
 LXCCU_ROOT="/var/lib/lxc/lxccu/"
-LXCCU_ROOTFS="/var/lib/lxc/lxccu/rootfs"
+LXCCU_ROOTFS="/var/lib/lxc/lxccu/root"
 CONTAINER_NAME="lxccu"
 LXC_AUTOSTART="/etc/lxc/auto/lxccu"
 logdebug () {
