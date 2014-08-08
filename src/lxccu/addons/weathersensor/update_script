@@ -2,7 +2,7 @@
 
 ### Prepare filesystem
 # oho changed
-mountPath="/var/lib/lxc/lxccu/rootfs" #mountPath="/mnt-root"
+mountPath="/var/lib/lxc/lxccu/root" #mountPath="/mnt-root"
 # OHO not needed
 # mkdir -p $mountPath
 #
