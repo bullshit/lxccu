@@ -1,5 +1,5 @@
 #!/bin/bash   
-currentip=$(cat /var/lib/lxc/lxccu/rootfs/usr/local/etc/config/netconfig|grep -i CURRENT_IP=|cut -d "=" -f 2)
+currentip=$(cat /var/lib/lxc/lxccu/root/usr/local/etc/config/netconfig|grep -i CURRENT_IP=|cut -d "=" -f 2)
 currentmac=$(grep '^ *lxc\.network\.hwaddr *='  /var/lib/lxc/lxccu/config | cut -d'=' -f2)
 
 echo "LXCCU IP address: ${currentip}"
