@@ -1,0 +1,10 @@
+#!/bin/bash
+INTERFACE_NR=$5
+IP=`cat /etc/config/hs485d.conf | grep -A 4 -i "Interface $INTERFACE_NR" | grep "IP Address =*" | cut -d"=" -f2 | tr -d ' '`
+echo $IP | sed -e "s/:/ /" | while read ip port
+do
+  if [[ -z "$port" ]]; then
+  	port=1001
+  fi
+  ./hs485d_original -l 5 -g -h $ip -p $port
+done

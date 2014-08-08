@@ -1,0 +1,7 @@
+#!/bin/sh
+
+#mountPath="/var/lib/lxc/lxccu/rootfs"
+mountPath=""
+mv $mountPath/bin/hs485d $mountPath/bin/hs485d_original
+cp -a ./hs485d $mountPath/bin
+chown root:root $mountPath/bin/hs485d
