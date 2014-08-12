@@ -66,7 +66,7 @@ case "$1" in
 		/var/lib/ubi_reader/ubi_extract_files.py -q -k -o $LXCCU_ROOT /opt/rootfs.ubi
 
 		# most lxc commands use rootfs folder and not the config option
-		mv $LXCCU_ROOT/root $LXCCU_ROOTFS
+		ln -s LXCCU_ROOTFS /var/lib/lxc/lxccu/rootfs
 
 		# clean up download sources
 		echo "Remove downloaded files"
