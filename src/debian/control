@@ -7,5 +7,5 @@ Build-Depends: debhelper (>= 9)
 
 Package: lxccu
 Architecture: all
-Depends:  patch,openssl, tar (>=1.26), gzip, wget, lxc, bridge-utils, python2.7 | python2.6, python (>= 2.6), python (<< 2.8), python-lzo, ${misc:Depends}
+Depends:  patch,openssl, tar (>=1.26), gzip, wget, lxc (<= 0.8), bridge-utils, python2.7 | python2.6, python (>= 2.6), python (<< 2.8), python-lzo, ${misc:Depends}
 Description: This install the homematic ccu firmware in a linux container
