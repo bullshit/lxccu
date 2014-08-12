@@ -127,7 +127,7 @@ lxc.mount.entry = /media/sd-lxccu  media/sd-mmcblk0/ none defaults,bind 0 0
 # logging lxc > v 0.8
 # lxc.loglevel = 2
 
-lxc.start.auto = 1
+#lxc.start.auto = 1
 
 lxc.tty = 1
 lxc.pts = 1
