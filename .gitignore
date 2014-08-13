@@ -5,3 +5,4 @@ src/debian/lxccu/
 # misc
 *.deb
 lxccu_*
+src/debian/files
