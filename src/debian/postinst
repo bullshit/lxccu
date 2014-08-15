@@ -28,7 +28,7 @@ bridgename=""
 
 case "$1" in
     configure)
-		LXCCU_VERSION=$(zcat /usr/share/doc/$DPKG_MAINTSCRIPT_PACKAGE/changelog.gz | \
+		LXCCU_VERSION=$(zcat /usr/share/doc/$DPKG_MAINTSCRIPT_PACKAGE/changelog*gz | \
   head -1 | perl -ne '$_=~ /.*\((.*)\).*/; print $1;')
 
 		if [ -f /opt/lxccu_backup.tar.gz ]; then
