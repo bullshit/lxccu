@@ -1,4 +1,4 @@
-lxccu (1.7) UNRELEASED; urgency=low
+lxccu (1.7-1) UNRELEASED; urgency=low
 
   * Initial release.
   * system log information
@@ -12,5 +12,6 @@ lxccu (1.7) UNRELEASED; urgency=low
   * upgrade to firmware 2.9.12
   * adding plugin system
   * insert weather station plugin (dirk@fhem)
+  * md5sum check for downloaded firmware file
 
  -- LXCCU Team <team@lxccu.org>  Thu, 24 Apr 2014 17:00:39 +0000
