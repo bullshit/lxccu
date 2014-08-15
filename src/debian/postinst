@@ -192,8 +192,8 @@ EOF
         # autostart
  		# add container
 		echo "start lxc container lxccu"
-#		touch "${LXCCU_ROOT}autostart" > /dev/null 2>&1
-#        ln -s "${LXCCU_ROOT}config" "$LXC_AUTOSTART" > /dev/null 2>&1
+		touch "${LXCCU_ROOT}autostart" > /dev/null 2>&1
+        ln -s "${LXCCU_ROOT}config" "$LXC_AUTOSTART" > /dev/null 2>&1
 
         lxc-start -n "$CONTAINER_NAME" -d
 
