@@ -55,7 +55,7 @@ case "$1" in
 		fi
 
 		# check md5sum
-		echo "1c4fe94a932c8fb1ac6968bb1bdfafc0  HM-CCU-2.9.12.tar.gz" > "/opt/HM-CCU2-${EQ3_FW_VERSION}.md5"
+		echo "1c4fe94a932c8fb1ac6968bb1bdfafc0  HM-CCU2-2.9.12.tar.gz" > "/opt/HM-CCU2-${EQ3_FW_VERSION}.md5"
 		cd /opt/ && md5sum -c "/opt/HM-CCU2-${EQ3_FW_VERSION}.md5"
 
 		if [ $? -eq 1 ]; then
