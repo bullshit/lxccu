@@ -39,7 +39,7 @@ backup_lxccu () {
         echo ""
         echo "lxccu shutdown complete"
     fi
-    
+    echo "backup lxccu at /opt"
     cd /var/lib/lxc/lxccu/root
     tar czf /opt/lxccu_backup.tar.gz usr/local
     cp /var/lib/lxc/lxccu/config /opt/lxccu_config_backup
