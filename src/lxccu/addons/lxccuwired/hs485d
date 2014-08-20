@@ -7,8 +7,8 @@ do
 		port=1000
 	fi
 	if [[ -z "$ip" ]]; then
-		./hs485d_original -l 1 -g -i $INTERFACE_NR
+		/bin/hs485d_original -l 1 -g -i $INTERFACE_NR
 	else
-		./hs485d_original -l 5 -g -h $ip -p $port
+		/bin/hs485d_original -l 5 -g -h $ip -p $port
 	fi
 done
