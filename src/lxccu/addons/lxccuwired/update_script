@@ -5,3 +5,4 @@ mountPath="/var/lib/lxc/lxccu/root"
 mv $mountPath/bin/hs485d $mountPath/bin/hs485d_original
 cp -a ./hs485d $mountPath/bin
 chown root:root $mountPath/bin/hs485d
+chmod +x $mountPath/bin/hs485d
