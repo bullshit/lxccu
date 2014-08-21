@@ -1,0 +1,45 @@
+#!/bin/sh
+#
+# disable overwritting id file
+#
+
+echo "LXCCU MEINHOMEMATIC FIX: disable overwritting id file"
+sed -i 's/^echo SerialNumber=/#echo SerialNumber=/g' /opt/mh/startup.sh
+sed -i 's/^echo BidCoS-Address=/#echo BidCoS-Address=/g' /opt/mh/startup.sh
+sed -i 's/^echo SerialNumber=/#echo SerialNumber=/g' /opt/mh/user/cleanup.sh
+sed -i 's/^echo BidCoS-Address=/#echo BidCoS-Address=/g' /opt/mh/user/cleanup.sh
+
+count=$(cat /opt/mh/user/trans.sh | grep -i "lxccu_mh_fix" | wc -l )
+if [ $count -eq 0 ]; then
+	sed -i 's/upd=/\/bin\/sh \/etc\/init.d\/S02lxccu_mh_fix >> \/dev\/null  # /g' /opt/mh/user/trans.sh
+	echo "upd=\`/bin/sh \$ADDONDIR/update.sh >> /dev/null\`" >> /opt/mh/user/trans.sh
+fi
+
+count=$(cat /etc/config/addons/mh/trans.sh | grep -i "lxccu_mh_fix" | wc -l )
+if [ $count -eq 0 ]; then
+	sed -i 's/upd=/\/bin\/sh \/etc\/init.d\/S02lxccu_mh_fix >> \/dev\/null # /g' /etc/config/addons/mh/trans.sh
+	echo "upd=\`/bin/sh \$ADDONDIR/update.sh >> /dev/null\`" >> /etc/config/addons/mh/trans.sh
+fi
+
+
+count=$(grep S02lxccu_mh_fix /opt/mh/user/cleanup.sh | wc -l)
+if [ $count -eq 0 ]; then
+	echo "/etc/init.d/S02lxccu_mh_fix" >> /opt/mh/user/cleanup.sh
+fi
+
+count=$(grep S02lxccu_mh_fix /etc/config/addons/mh/cleanup.sh | wc -l)
+if [ $count -eq 0 ]; then
+	echo "/etc/init.d/S02lxccu_mh_fix" >> /etc/config/addons/mh/cleanup.sh
+fi
+
+count=$(grep S02lxccu_mh_fix /opt/mh/user/update.sh | wc -l)
+if [ $count -eq 0 ]; then
+	echo "/etc/init.d/S02lxccu_mh_fix" >> /opt/mh/user/update.sh
+fi
+
+count=$(grep S02lxccu_mh_fix /etc/config/addons/mh/update.sh | wc -l)
+if [ $count -eq 0 ]; then
+	echo "/etc/init.d/S02lxccu_mh_fix" >> /etc/config/addons/mh/update.sh
+fi
+
+exit $?

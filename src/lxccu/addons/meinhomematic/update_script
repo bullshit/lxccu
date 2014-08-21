@@ -1,0 +1,45 @@
+#!/bin/bash
+
+mountPath="/var/lib/lxc/lxccu/root"
+
+# enable tun mod
+if grep "tun" /etc/modules > /dev/null
+then
+   echo "modprobe tun found nothing to do - OK!"
+else
+   echo "adding modprobe tun - fertig!"
+   echo "tun" > /etc/modules
+   modprobe tun
+fi
+
+# create tun device
+count=$(ip addr | grep -i tap0 | wc -l)
+if [[ $count -eq 0 ]]; then
+	echo "create tun device under /dev/net with 'tunctl' - fertig!"
+	tunctl 2> /dev/null
+else
+	echo "tun device exists - OK!"
+fi
+
+DEV="/var/lib/lxc/lxccu/root/dev"
+if [ ! -d "${DEV}/net" ]; then
+	echo "creating dev/net directory - fertig!"
+	mkdir ${DEV}/net
+else
+	echo "lxccu net directory exists - OK!"
+fi
+
+if [ ! -c "${DEV}/net/tun" ]; then
+	echo "create tun device for lxccu - fertig!"
+	mknod ${DEV}/net/tun c 10 200 2> /dev/null
+	chmod 666 ${DEV}/net/tun
+else
+	echo "lxccu tun devices exists - OK!"
+fi
+
+echo "copy mh_fix startup script"
+cp -a ./S02lxccu_mh_fix "${mountPath}/etc/init.d/S02lxccu_mh_fix" 
+chmod +x "${mountPath}/etc/init.d/S02lxccu_mh_fix"
+
+
+exit 0

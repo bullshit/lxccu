@@ -168,6 +168,9 @@ lxc.cgroup.devices.allow = c 5:2 rwm
 #lxc.cgroup.devices.allow = b 7:* rwm # loop
 #lxc.cgroup.devices.allow = b 1:* rwm # ram
 
+# /dev/net/
+lxc.cgroup.devices.allow = c 10:200 rwm
+
 lxc.utsname = lxccu
 lxc.network.type = veth
 lxc.network.flags = up
