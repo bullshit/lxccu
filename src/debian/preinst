@@ -79,20 +79,29 @@ case "$1" in
 		else
             echo "Create bridge"
 
-        # @TODO v1.5 check if static ip.
-		DEVICES=`cat /etc/network/interfaces | grep '^iface' | grep -v "default" | grep -v "lo" | cut -d' ' -f2`
-        DEVICES_LIST=`echo $DEVICES |  tr '\n' ' ' `
+            bridgecount="$(brctl show | wc -l)"
+            staticip="$(cat /etc/network/interfaces| grep '^ *address ' | wc -l)"
+            if [[ $bridgecount -lt 2 && $staticip -gt 0 ]]; then
+                echo "static ip bridge"
+                sed -i "s/iface eth0 inet static/#iface eth0 inet manual\\n\\nauto lxccubr0\\niface lxccubr0 inet static\\n\\tbridge-ports eth0/g" /etc/network/interfaces
+            else
+                echo "dhcp brige"
+        		DEVICES=`cat /etc/network/interfaces | grep '^iface' | grep -v "default" | grep -v "lo" | cut -d' ' -f2`
+                DEVICES_LIST=`echo $DEVICES |  tr '\n' ' ' `
 
-        for dev in $DEVICES
-        do
-            sed -i "s/^iface ${dev} inet dhcp/#iface ${dev} inet dhcp/g" /etc/network/interfaces
-        done
-		cat >> /etc/network/interfaces << EOF
+                for dev in $DEVICES
+                do
+                    sed -i "s/^iface ${dev} inet dhcp/#iface ${dev} inet dhcp/g" /etc/network/interfaces
+                done
+                cat >> /etc/network/interfaces << EOF
 auto lxccubr0
 iface lxccubr0 inet dhcp
   bridge_ports $DEVICES_LIST	
 EOF
-		ifup lxccubr0
+            fi # bridgecoutn -lt 2 && static -gt 0
+
+            ifup lxccubr0
+
         fi
        
     ;;
