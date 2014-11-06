@@ -2,7 +2,7 @@
 
 mountPath="/var/lib/lxc/lxccu/root"
 #mountPath=""
-mv $mountPath/bin/hs485d $mountPath/bin/hs485d_original
-cp -a ./hs485d $mountPath/bin
-chown root:root $mountPath/bin/hs485d
-chmod +x $mountPath/bin/hs485d
+#mv $mountPath/bin/hs485d $mountPath/bin/hs485d_original
+cp -a ./hs485d_lxccu $mountPath/bin
+chown root:root $mountPath/bin/hs485d_lxccu
+chmod +x $mountPath/bin/hs485d_lxccu
