@@ -199,7 +199,7 @@ EOF
 		if [ ! -f "${LXCCU_ROOT}autostart" ]; then
 			touch "${LXCCU_ROOT}autostart"
 		fi
-		if [ ! -f "${LXCCU_ROOT}config" ]; then
+		if [ ! -f "${LXC_AUTOSTART}" ]; then
         	ln -s "${LXCCU_ROOT}config" "$LXC_AUTOSTART"
     	fi
 
