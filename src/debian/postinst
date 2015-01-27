@@ -43,7 +43,8 @@ case "$1" in
 
 
 		# download fw
-		EQ3_FW_URL="http://www.eq-3.de/Downloads/Software/HM-CCU2-Firmware_Updates/HM-CCU2-${EQ3_FW_VERSION}/HM-CCU-${EQ3_FW_VERSION}.tar.gz"
+		#EQ3_FW_URL="http://www.eq-3.de/Downloads/Software/HM-CCU2-Firmware_Updates/HM-CCU2-${EQ3_FW_VERSION}/HM-CCU-${EQ3_FW_VERSION}.tar.gz"
+		EQ3_FW_URL="http://www.eq-3.de/Downloads/Software/HM-CCU2-Firmware_Updates/HM-CCU2-${EQ3_FW_VERSION}/firmware-${EQ3_FW_VERSION}.tar.gz"
 		logdebug "EQ3_FW_URL" $EQ3_FW_URL
 		EQ3_FW="/opt/HM-CCU2-${EQ3_FW_VERSION}.tar.gz"
 		logdebug "EQ3_FW" $EQ3_FW

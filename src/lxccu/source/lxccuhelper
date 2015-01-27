@@ -1,7 +1,7 @@
 #!/bin/bash
 
-EQ3_FW_VERSION="2.11.6"
-EQ3_FW_MD5SUM="51011963d9cd1f21046612335769baf8"
+EQ3_FW_VERSION="2.11.9"
+EQ3_FW_MD5SUM="ddc58c75d663c9bd7bef39bd348717e1"
 
 ROOT_PATH="/var/lib/lxccu/"
 LXCCU_ROOT="/var/lib/lxc/lxccu/"
