@@ -48,6 +48,57 @@ backup_lxccu () {
     tar czf /opt/lxccu_prev_backup_`date +%s`.tar.gz lxccu/
 }
 
+#########
+#
+#
+#   bridge functions start
+#
+#
+#########
+NETWORK_FILE="/etc/network/interfaces"
+
+_backup_networkconfig_file() {
+    cur_date=$(date +%s)
+    cp $NETWORK_FILE /etc/network/interfaces_${cur_date}
+}
+
+_bridge_exists() {
+    local count=$(cat $NETWORK_FILE | grep "bridge_ports" | wc -l)
+    echo $count
+}
+
+_has_static_ip() {
+    echo $(cat $NETWORK_FILE | grep "eth0 inet static" | wc -l)
+}
+
+_create_static_bridge() {
+    sed -i "s/iface eth0 inet static/#iface eth0 inet static\\n\\nauto lxccubr0\\niface lxccubr0 inet static\\n\\tbridge-ports eth0/g" $NETWORK_FILE
+    echo "" >> $NETWORK_FILE
+}
+
+_create_dhcp_bridge() {
+    sed -i "s/iface eth0 inet dhcp/#iface eth0 inet dhcp\\n\\nauto lxccubr0\\niface lxccubr0 inet dhcp\\n\\tbridge-ports eth0/g" $NETWORK_FILE
+    echo "" >> $NETWORK_FILE
+}
+
+_create_bridge() {
+    _backup_networkconfig_file
+    if [ `_has_static_ip` -eq 1 ]; then
+        echo "creating STATIC bridge"
+        _create_static_bridge
+    else
+        echo "creating DHCP bridge"
+        _create_dhcp_bridge
+    fi
+}
+#########
+#
+#
+#   bridge functions end
+#
+#
+#########
+
 case "$1" in
     install)
         # mount cgroup
@@ -59,51 +110,10 @@ case "$1" in
             mount -a > /dev/null 2>&1
         fi
 
-        # @TODO check lxc loaded issue #12
-        
-        count=$(brctl show | awk 'NR % 2 == 0' | awk '{print $1}' | wc -l)
-        if [ $count -gt 0 ]; then
-            if [ $count -eq 1 ]; then
-                DEVICES=`grep '^ *bridge_ports' /etc/network/interfaces | cut -d' ' -f4-10 `
-                for dev in $DEVICES
-                do
-                    sed -i "s/^iface ${dev} inet /#iface ${dev} inet /g" /etc/network/interfaces
-                done
-            fi
-            exit 0
-        fi
-
-        # TODO remove it 
-		if  ip addr show lxccubr0 > /dev/null 2>&1 ; then
-			echo "Bridge already exists"
-		else
-            echo "Create bridge"
-
-            bridgecount="$(brctl show | wc -l)"
-            staticip="$(cat /etc/network/interfaces| grep '^ *address ' | wc -l)"
-            if [[ $bridgecount -lt 2 && $staticip -gt 0 ]]; then
-                echo "static ip bridge"
-                sed -i "s/iface eth0 inet static/#iface eth0 inet manual\\n\\nauto lxccubr0\\niface lxccubr0 inet static\\n\\tbridge-ports eth0/g" /etc/network/interfaces
-            else
-                echo "dhcp brige"
-        		DEVICES=`cat /etc/network/interfaces | grep '^iface' | grep -v "default" | grep -v "lo" | cut -d' ' -f2`
-                DEVICES_LIST=`echo $DEVICES |  tr '\n' ' ' `
-
-                for dev in $DEVICES
-                do
-                    sed -i "s/^iface ${dev} inet dhcp/#iface ${dev} inet dhcp/g" /etc/network/interfaces
-                done
-                cat >> /etc/network/interfaces << EOF
-auto lxccubr0
-iface lxccubr0 inet dhcp
-  bridge_ports $DEVICES_LIST	
-EOF
-            fi # bridgecoutn -lt 2 && static -gt 0
-
+        if [ `_bridge_exists` -eq 0 ]; then
+            _create_bridge
             ifup lxccubr0
-
-        fi
-       
+        fi 
     ;;
 
     upgrade)
