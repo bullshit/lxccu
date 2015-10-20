@@ -1,7 +1,7 @@
 diff -rupN fsoriginal/bin/mountSD fs/bin/mountSD
 --- fsoriginal/bin/mountSD	2015-05-16 13:48:44.615375102 +0200
-+++ fs/bin/mountSD	2015-05-16 13:52:03.965326754 +0200
-@@ -1,10 +1,10 @@
++++ fs/bin/mountSD	2015-05-16 15:57:01.450244228 +0200
+@@ -1,10 +1,11 @@
  #!/bin/sh
  echo "Starte mountSD: $@" > /tmp/dudu
 -mount $@
@@ -9,6 +9,7 @@ diff -rupN fsoriginal/bin/mountSD fs/bin/mountSD
 +# mount $@
 +# if [ $? == 0 ] ; then
  	touch /var/status/SDmounted
++	touch /var/status/hasSD
  	if [ -f /media/sd-mmcblk0/.initialised ] ; then
  		touch /var/status/SDinitialised
  	fi
@@ -575,28 +576,6 @@ diff -rupN fsoriginal/etc/init.d/S40UsbNetwork fs/etc/init.d/S40UsbNetwork
 -
 -exit $?
 -
-diff -rupN fsoriginal/etc/init.d/S48lxccu fs/etc/init.d/S48lxccu
---- fsoriginal/etc/init.d/S48lxccu	1970-01-01 01:00:00.000000000 +0100
-+++ fs/etc/init.d/S48lxccu	2015-05-16 15:37:00.060644922 +0200
-@@ -0,0 +1,18 @@
-+#!/bin/sh
-+#
-+#	need since FW 2.13.7
-+#
-+
-+
-+case "$1" in
-+    start)
-+		/bin/touch /var/status/hasSD
-+        ;;
-+    stop)
-+        ;;
-+    *)
-+        ;;
-+esac
-+
-+
-+exit 0
 diff -rupN fsoriginal/etc/init.d/S50eq3configd fs/etc/init.d/S50eq3configd
 --- fsoriginal/etc/init.d/S50eq3configd	2015-05-16 13:48:45.075401258 +0200
 +++ fs/etc/init.d/S50eq3configd	2015-05-16 13:52:03.985327645 +0200
