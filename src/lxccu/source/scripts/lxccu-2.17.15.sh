@@ -15,6 +15,7 @@ mknod -m 666 ${DEV}/tty0 c 4 0
 mknod -m 666 ${DEV}/tty1 c 4 0
 #mknod -m 666 ${DEV}/ttyAMA0 c 4 1
 #mknod -m 666 ${DEV}/ttyGS0 c 4 2
+mknod -m 666 /dev/ttyS0 c 4 64
 #mknod -m 666 ${DEV}/full c 1 7
 #mknod -m 600 ${DEV}/initctl p
 #mknod -m 666 ${DEV}/ptmx c 5 2
@@ -24,3 +25,6 @@ mkdir ${ROOT}/media/sd-mmcblk0
 # fuer den fall der faelle
 echo '#!/bin/sh' > ${ROOT}/bin/update_firmware_pre
 echo '#!/bin/sh' > ${ROOT}/bin/update_firmware_run
+# wir halten patches klein und reagieren auf zukuenftige anpassungen
+sed -i "s/modprobe/echo/g" ${ROOT}/etc/init.d/S00eQ3SystemStart
+touch ${ROOT}/usr/local/etc/config/no-coprocessor-update
