@@ -90,6 +90,8 @@ _create_dhcp_bridge() {
         echo -e "\\nauto lxccubr0\\niface lxccubr0 inet dhcp\\n\\tbridge-ports eth0" >> $NETWORK_FILE
     else
         sed -i "s/iface eth0 inet dhcp/#iface eth0 inet dhcp\\n\\nauto lxccubr0\\niface lxccubr0 inet dhcp\\n\\tbridge-ports eth0/g" $NETWORK_FILE
+        # beim akuellen rapsbian steht an stelle von dhcp standardmaessig manual
+        sed -i "s/iface eth0 inet manual/#iface eth0 inet dhcp\\n\\nauto lxccubr0\\niface lxccubr0 inet dhcp\\n\\tbridge-ports eth0/g" $NETWORK_FILE
     fi
     echo "" >> $NETWORK_FILE
 }
@@ -120,7 +122,8 @@ case "$1" in
             if [ $cgroup_mounted -eq 0 ]; then
                 echo "lxc /sys/fs/cgroup cgroup defaults 0 0" >> /etc/fstab
             fi
-            mount -a > /dev/null 2>&1
+# wird bei jessie nach der Installation von lxc gemountet
+#            mount -a > /dev/null 2>&1
         fi
 
         if [ `_bridge_exists` -eq 0 ]; then
